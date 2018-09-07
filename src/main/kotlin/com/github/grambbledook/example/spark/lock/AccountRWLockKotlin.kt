@@ -29,7 +29,7 @@ class AccountRWLockKotlin {
     }
 
     private fun release(id: Long, type: LockType) {
-        cleanup(id, type).unlock()
+        cleanup(id, type).also { it.unlock() }
     }
 
     fun lockWrite(id: Long, executeCriticalSection: () -> Unit) {
