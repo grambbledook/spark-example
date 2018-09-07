@@ -1,12 +1,14 @@
-import com.github.grambbledook.example.spark.lock.AccountLockKotlin
+package com.github.grambbledook.example.spark.lock
+
 import org.junit.Test
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 
-val lock = AccountLockKotlin()
 
-class AccountLockKotlinTest {
+val accountLock = AccountLock()
+
+class AccountLockTest{
 
 
     @Test
@@ -16,28 +18,32 @@ class AccountLockKotlinTest {
 
         val buffer = ArrayDeque<String>()
 
-        val Consumer = Consumer(buffer, latch).apply { start() }
-        val Producer = Producer(buffer, latch, barrier).apply { start() }
+        val consumer = Consumer(buffer, latch).apply { start() }
+        val producer = Producer(buffer, latch, barrier).apply { start() }
 
         barrier.await()
         assert(HELLO_WORLD == buffer.peek())
 
-        Producer.join()
-        Consumer.join()
+        producer.join()
+        consumer.join()
 
         assert(buffer.isEmpty())
-        assert(HELLO_WORLD == Consumer.helloWorld)
+        assert(HELLO_WORLD == consumer.helloWorld)
     }
 
     class Producer(private val buffer: Queue<String>, private val latch: CountDownLatch, private val barrier: CyclicBarrier) : Thread() {
         override fun run() {
-            lock.synchronized(ID) {
+            try {
+                accountLock.acquire(ID)
                 println("Producer acquire")
+
                 buffer.offer(HELLO_WORLD)
 
                 latch.countDown()
                 barrier.await()
+            } finally {
                 println("Producer release")
+                accountLock.release(ID)
             }
         }
     }
@@ -47,14 +53,18 @@ class AccountLockKotlinTest {
 
         override fun run() {
             latch.await()
-
-            lock.synchronized(ID) {
+            try {
+                accountLock.acquire(ID)
                 println("Consumer acquire")
+
                 helloWorld = buffer.poll()
+            } finally {
                 println("Consumer release")
+                accountLock.release(ID)
             }
         }
     }
 
 }
+
 
