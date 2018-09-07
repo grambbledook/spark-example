@@ -15,10 +15,10 @@ class AccountRWLockKotlin {
     private val READ: LockType = { l: RWLock -> l.readLock }
     private val WRITE: LockType = { l: RWLock -> l.writeLock }
 
-    fun lockRead(id: Long, executeCriticalSection: () -> Unit) {
+    fun <T> lockRead(id: Long, executeCriticalSection: () -> T): T {
         try {
             acquire(id, READ)
-            executeCriticalSection()
+            return executeCriticalSection()
         } finally {
             release(id, READ)
         }
@@ -32,10 +32,10 @@ class AccountRWLockKotlin {
         cleanup(id, type).also { it.unlock() }
     }
 
-    fun lockWrite(id: Long, executeCriticalSection: () -> Unit) {
+    fun <T> lockWrite(id: Long, executeCriticalSection: () -> T): T {
         try {
             acquire(id, WRITE)
-            executeCriticalSection()
+            return executeCriticalSection()
         } finally {
             release(id, WRITE)
         }
