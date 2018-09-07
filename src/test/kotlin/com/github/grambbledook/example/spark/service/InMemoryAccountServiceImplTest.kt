@@ -99,5 +99,4 @@ class InMemoryAccountServiceImplTest : AccountFixture {
         Assert.assertEquals(0.00, secondAfter.get().amount, 1e-2)
     }
 
-
 }
