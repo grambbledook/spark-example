@@ -9,7 +9,6 @@ val lock = AccountLockKotlin()
 
 class AccountLockKotlinTest {
 
-
     @Test
     fun testSecondThreadIsBlockedUntilRelease() {
         val latch = CountDownLatch(1)

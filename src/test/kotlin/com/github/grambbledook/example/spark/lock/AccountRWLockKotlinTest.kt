@@ -64,7 +64,6 @@ class AccountRWLockKotlinTest{
     }
 
     class Writer(private val buffer: Queue<String>, private val barrier: CyclicBarrier, private val latch: CountDownLatch) : Thread(), LockFixture {
-
         override fun run() {
             barrier.await()
 
