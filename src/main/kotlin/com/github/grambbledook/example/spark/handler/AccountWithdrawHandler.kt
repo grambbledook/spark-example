@@ -19,7 +19,7 @@ class AccountWithdrawHandler(private val accountService: AccountService, overrid
         return performAction {
             accountService.withdraw(request.id, request.amount)
         }.onFailure {
-            logger.error("An error occurred on withdrawing money from account [${request.id}]")
+            logger.error("An error occurred on withdrawing money from account [${request.id}]", it)
         }.recover { generateErrorResponse(it) }.get()
     }
 

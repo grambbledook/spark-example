@@ -19,7 +19,7 @@ class AccountDepositHandler(private val accountService: AccountService, override
         return performAction {
             accountService.deposit(request.id, request.amount)
         }.onFailure {
-            logger.error("An error occurred on depositing money to account [${request.id}]")
+            logger.error("An error occurred on depositing money to account [${request.id}]", it)
         }.recover { generateErrorResponse(it) }.get()
     }
 

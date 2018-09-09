@@ -19,7 +19,7 @@ class CreateAccountHandler(private val accountService: AccountService, override 
         return performAction {
             accountService.create(request.amount, request.owner)
         }.onFailure {
-            logger.error("An error occurred on creating account for owner [${request.owner}]")
+            logger.error("An error occurred on creating account for owner [${request.owner}]", it)
         }.recover { generateErrorResponse(it) }.get()
     }
 

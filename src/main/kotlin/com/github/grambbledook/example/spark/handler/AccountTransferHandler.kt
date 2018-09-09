@@ -19,7 +19,7 @@ class AccountTransferHandler(private val accountService: AccountService, overrid
         return performAction {
             accountService.transfer(request.from, request.to, request.amount)
         }.onFailure {
-            logger.error("An error occurred on money transfer from account [${request.from}] to account [${request.to}]")
+            logger.error("An error occurred on money transfer from account [${request.from}] to account [${request.to}]", it)
         }.recover { generateErrorResponse(it) }.get()
     }
 
