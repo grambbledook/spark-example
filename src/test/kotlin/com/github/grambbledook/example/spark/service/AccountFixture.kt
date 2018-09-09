@@ -7,8 +7,8 @@ interface AccountFixture {
 
     @Before
     fun setup() {
-        service.create(FIRST, 100.00, "John Doe")
-        service.create(SECOND, 0.00, "John Doe")
+        service.create(100.00, "Jane Doe").get().id
+        service.create(0.00, "Jane Doe").get().id
     }
 
     companion object {

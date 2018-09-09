@@ -4,7 +4,12 @@ import com.github.grambbledook.example.spark.dto.Account
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
-class InMemoryAccountRepository(private val accounts: ConcurrentMap<Long, Account> = ConcurrentHashMap()) : AccountRepository {
+class InMemoryAccountRepository(initialData: Map<Long, Account> = mapOf()) : AccountRepository {
+    private val accounts: ConcurrentMap<Long, Account> = ConcurrentHashMap()
+
+    init {
+        accounts.putAll(initialData)
+    }
 
     override fun findById(id: Long): Account? = accounts[id]
 
