@@ -18,9 +18,9 @@ interface HandlerMixin<T> : Route, Jackson<T>, Logging {
 
         return response.apply {
             when (result) {
-                is Success -> {
+                is Success<*> -> {
                     status(200)
-                    body(toString(result.payload))
+                    body(toString(result.payload!!))
                 }
                 is Failure -> {
                     status(result.code)
@@ -35,13 +35,13 @@ interface HandlerMixin<T> : Route, Jackson<T>, Logging {
     fun process(value: T): Result
 
     fun performAction(action: () -> Try<Account>): Try<Result> {
-        return action().map { Success(it) }
+        return action().map { Success<Account>(it) }
     }
 
     fun generateErrorResponse(it: Throwable): Result {
         return when (it) {
             is AccountError -> Failure(400, it.message)
-            else -> Failure(500, it.cause?.message)
+            else -> Failure(500, it.message)
         }
     }
 
