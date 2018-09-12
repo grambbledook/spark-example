@@ -5,9 +5,9 @@ import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 
-val lock = AccountLockKotlin()
+val lock = AccountLock()
 
-class AccountLockKotlinTest {
+class AccountLockTest {
 
     @Test
     fun testSecondThreadIsBlockedUntilRelease() {

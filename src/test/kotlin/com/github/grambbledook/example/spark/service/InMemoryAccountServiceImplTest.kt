@@ -1,6 +1,6 @@
 package com.github.grambbledook.example.spark.service
 
-import com.github.grambbledook.example.spark.lock.AccountRWLockKotlin
+import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import com.github.grambbledook.example.spark.service.AccountFixture.Companion.FIRST
 import com.github.grambbledook.example.spark.service.AccountFixture.Companion.SECOND
@@ -11,7 +11,7 @@ import org.junit.Test
 
 class InMemoryAccountServiceImplTest : AccountFixture {
 
-    override var service = InMemoryAccountServiceImpl(FIRST, InMemoryAccountRepository(), AccountRWLockKotlin())
+    override var service = InMemoryAccountServiceImpl(FIRST, InMemoryAccountRepository(), AccountRWLock())
 
     @Test
     fun testGetAccountInfoSucceeded() {

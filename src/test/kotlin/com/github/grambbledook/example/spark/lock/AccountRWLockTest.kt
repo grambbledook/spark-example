@@ -5,12 +5,12 @@ import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 
-val rwLock = AccountRWLockKotlin()
+val rwLock = AccountRWLock()
 
-class AccountRWLockKotlinTest{
+class AccountRWLockTest{
 
     @Test
-    fun testSecondThreadIsBlockedUntilRelease() {
+    fun testReaderIsBlockedOnActiveWrite() {
         val latch = CountDownLatch(1)
         val readerBarrier = CyclicBarrier(2)
         val writerBarrier = CyclicBarrier(2)
@@ -42,7 +42,7 @@ class AccountRWLockKotlinTest{
                 println("Reader1 acquire")
                 result = buffer.size
                 barrier.await()
-                executeJob()
+                timeConsumingPart()
                 println("Reader1 release")
             }
         }
@@ -56,7 +56,7 @@ class AccountRWLockKotlinTest{
 
             rwLock.lockRead(ID) {
                 println("Reader2 acquire")
-                executeJob()
+                timeConsumingPart()
                 result = buffer.size
                 println("Reader2 release")
             }
@@ -73,7 +73,7 @@ class AccountRWLockKotlinTest{
                 latch.countDown()
                 println("Writer countdown")
 
-                executeJob()
+                timeConsumingPart()
                 buffer.add(HELLO_WORLD)
 
                 println("Writer release")

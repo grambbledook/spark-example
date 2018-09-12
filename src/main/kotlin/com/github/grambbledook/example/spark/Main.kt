@@ -10,7 +10,7 @@ import com.github.grambbledook.example.spark.handler.AccountDepositHandler
 import com.github.grambbledook.example.spark.handler.AccountWithdrawHandler
 import com.github.grambbledook.example.spark.handler.CreateAccountHandler
 import com.github.grambbledook.example.spark.handler.GetAccountInfoHandler
-import com.github.grambbledook.example.spark.lock.AccountRWLockKotlin
+import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import com.github.grambbledook.example.spark.service.InMemoryAccountServiceImpl
 import spark.Spark.get
@@ -44,7 +44,7 @@ fun initAccountService(config: AppConfig): InMemoryAccountServiceImpl {
     return InMemoryAccountServiceImpl(
             startId = initialData.keys.max() ?: 1,
             accountRepo = InMemoryAccountRepository(initialData),
-            lock = AccountRWLockKotlin()
+            lock = AccountRWLock()
     )
 }
 

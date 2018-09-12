@@ -2,13 +2,13 @@ package com.github.grambbledook.example.spark.service
 
 import com.github.grambbledook.example.spark.dto.Account
 import com.github.grambbledook.example.spark.dto.BusinessCode
-import com.github.grambbledook.example.spark.lock.AccountRWLockKotlin
+import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import io.vavr.control.Try
 import io.vavr.kotlin.Try
 import java.util.concurrent.atomic.AtomicLong
 
-class InMemoryAccountServiceImpl(startId: Long, private val accountRepo: InMemoryAccountRepository, private val lock: AccountRWLockKotlin) : AccountService {
+class InMemoryAccountServiceImpl(startId: Long, private val accountRepo: InMemoryAccountRepository, private val lock: AccountRWLock) : AccountService {
 
     private val idGenerator = AtomicLong(startId)
 

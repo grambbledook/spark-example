@@ -15,16 +15,12 @@ interface HandlerMixin<T> : Route, Jackson<T>, Logging {
 
         return response.apply {
             when (result) {
-                is Success<*> -> {
-                    status(200)
-                    body(toString(result.payload!!))
-                }
-                is Failure -> {
-                    status(200)
-                    body(toString(result))
-                }
                 is Error -> {
                     status(500)
+                    body(toString(result))
+                }
+                else -> {
+                    status(200)
                     body(toString(result))
                 }
             }

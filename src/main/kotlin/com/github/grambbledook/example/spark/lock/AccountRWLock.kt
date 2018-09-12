@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-internal typealias LockType = (AccountRWLockKotlin.RWLock) -> Lock
+internal typealias LockType = (AccountRWLock.RWLock) -> Lock
 
-class AccountRWLockKotlin {
+class AccountRWLock {
 
     private val locks: ConcurrentMap<Long, RWLock> = ConcurrentHashMap()
 

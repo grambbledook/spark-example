@@ -4,7 +4,7 @@ const val ID: Long = 10
 const val HELLO_WORLD = "Hello World"
 
 interface LockFixture {
-    fun executeJob() {
+    fun timeConsumingPart() {
         Thread.sleep(1000)
     }
 }

@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicInteger
 
-class AccountLockKotlin {
+class AccountLock {
     private val locks: ConcurrentMap<Long, AtomicInteger> = ConcurrentHashMap()
 
     fun synchronized(id: Long, executeCriticalSection: () -> Unit) {
