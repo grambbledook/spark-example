@@ -23,7 +23,7 @@ class InMemoryAccountServiceImplTest : AccountFixture {
     fun testGetNotExistingAccountInfoResultsInError() {
         val account = service.getInfo(UNKNOWN)
         Assert.assertTrue(account.isFailure)
-        Assert.assertTrue(account.cause is AccountNotFoundError)
+        Assert.assertTrue(account.cause is AccountError)
         Assert.assertEquals("Account [$UNKNOWN] not found", account.cause.message)
     }
 

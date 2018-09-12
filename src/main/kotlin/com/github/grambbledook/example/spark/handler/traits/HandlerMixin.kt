@@ -1,12 +1,7 @@
 package com.github.grambbledook.example.spark.handler.traits
 
-import com.github.grambbledook.example.spark.dto.Account
-import com.github.grambbledook.example.spark.dto.Failure
-import com.github.grambbledook.example.spark.dto.Result
-import com.github.grambbledook.example.spark.dto.Success
+import com.github.grambbledook.example.spark.dto.*
 import com.github.grambbledook.example.spark.service.AccountError
-import com.github.grambbledook.example.spark.service.AccountNotEnoughMoneyError
-import com.github.grambbledook.example.spark.service.AccountNotFoundError
 import io.vavr.control.Try
 import spark.Request
 import spark.Response
@@ -25,8 +20,12 @@ interface HandlerMixin<T> : Route, Jackson<T>, Logging {
                     body(toString(result.payload!!))
                 }
                 is Failure -> {
-                    status(result.code)
-                    body(toString(result.reason ?: ""))
+                    status(200)
+                    body(toString(result))
+                }
+                is Error -> {
+                    status(500)
+                    body(toString(result))
                 }
             }
         }.body()
@@ -42,10 +41,8 @@ interface HandlerMixin<T> : Route, Jackson<T>, Logging {
 
     fun generateErrorResponse(it: Throwable): Result {
         return when (it) {
-            is AccountNotFoundError -> Failure(404, it.message)
-            is AccountNotEnoughMoneyError -> Failure(402, it.message)
-            is AccountError -> Failure(400, it.message)
-            else -> Failure(500, it.message)
+            is AccountError -> Failure(it.code, it.message)
+            else -> Error(it.message)
         }
     }
 

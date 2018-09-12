@@ -1,9 +1,9 @@
 package com.github.grambbledook.example.spark.handler
 
 import com.github.grambbledook.example.spark.dto.Account
-import com.github.grambbledook.example.spark.dto.Failure
+import com.github.grambbledook.example.spark.dto.Error
 import com.github.grambbledook.example.spark.dto.Success
-import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.ALL_MONEY
+import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.THOUSAND_UNITS
 import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.FIRST
 import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.NEW_AMOUNT
 import com.github.grambbledook.example.spark.service.AccountService
@@ -23,12 +23,12 @@ class AccountDepositHandlerTest : HandlerFixture {
     @Test
     fun testDepositResultsInSuccessResult() {
         every {
-            service.deposit(FIRST, ALL_MONEY)
+            service.deposit(FIRST, THOUSAND_UNITS)
         }.returns(
                 Try.success(Account(FIRST, NEW_AMOUNT, "John doe"))
         )
 
-        val result = handler.process(Request(FIRST, ALL_MONEY)) as Success<Account>
+        val result = handler.process(Request(FIRST, THOUSAND_UNITS)) as Success<Account>
 
         assertEquals(FIRST, result.payload.id)
         assertEquals(NEW_AMOUNT, result.payload.amount, 1e-2)
@@ -38,9 +38,8 @@ class AccountDepositHandlerTest : HandlerFixture {
     fun testInternalErrorCausesCode500() {
         every { service.deposit(any(), any()) }.returns(Try.failure(Exception("Error thrown")))
 
-        val result = handler.process(Request(FIRST, ALL_MONEY)) as Failure
+        val result = handler.process(Request(FIRST, THOUSAND_UNITS)) as Error
 
-        assertEquals(500, result.code)
         assertEquals("Error thrown", result.reason)
     }
 }

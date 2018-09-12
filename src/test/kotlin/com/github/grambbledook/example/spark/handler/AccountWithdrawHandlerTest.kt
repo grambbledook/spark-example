@@ -3,12 +3,13 @@ package com.github.grambbledook.example.spark.handler
 import com.github.grambbledook.example.spark.dto.Account
 import com.github.grambbledook.example.spark.dto.Failure
 import com.github.grambbledook.example.spark.dto.Success
-import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.ALL_MONEY
 import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.FIRST
 import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.NO_MONEY
-import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.ZERO_AMOUNT
-import com.github.grambbledook.example.spark.service.AccountNotEnoughMoneyError
+import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.THOUSAND_UNITS
+import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.ZERO_UNITS
+import com.github.grambbledook.example.spark.service.AccountError
 import com.github.grambbledook.example.spark.service.AccountService
+import com.github.grambbledook.example.spark.dto.BusinessCode
 import io.mockk.every
 import io.mockk.mockk
 import io.vavr.control.Try
@@ -25,28 +26,28 @@ class AccountWithdrawHandlerTest : HandlerFixture {
     @Test
     fun testWithdrawResultsInSuccessResult() {
         every {
-            service.withdraw(FIRST, ALL_MONEY)
+            service.withdraw(FIRST, THOUSAND_UNITS)
         }.returns(
-                Try.success(Account(FIRST, ZERO_AMOUNT, "John doe"))
+                Try.success(Account(FIRST, ZERO_UNITS, "John doe"))
         )
 
-        val result = handler.process(WithdrawRequest(FIRST, ALL_MONEY)) as Success<Account>
+        val result = handler.process(WithdrawRequest(FIRST, THOUSAND_UNITS)) as Success<Account>
 
         assertEquals(FIRST, result.payload.id)
-        assertEquals(ZERO_AMOUNT, result.payload.amount, 1e-2)
+        assertEquals(ZERO_UNITS, result.payload.amount, 1e-2)
     }
 
     @Test
     fun testWithdrawNoMoneyCode() {
         every {
-            service.withdraw(FIRST, ALL_MONEY)
+            service.withdraw(FIRST, THOUSAND_UNITS)
         }.returns(
-                Try.failure(AccountNotEnoughMoneyError(NO_MONEY))
+                Try.failure(AccountError(NO_MONEY, BusinessCode.INSUFFICIENT_FUNDS))
         )
 
-        val result = handler.process(WithdrawRequest(FIRST, ALL_MONEY)) as Failure
+        val result = handler.process(WithdrawRequest(FIRST, THOUSAND_UNITS)) as Failure
 
-        assertEquals(402, result.code)
+        assertEquals(BusinessCode.INSUFFICIENT_FUNDS, result.businessCode)
         assertEquals(NO_MONEY, result.reason)
     }
 

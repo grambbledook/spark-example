@@ -1,6 +1,7 @@
 package com.github.grambbledook.example.spark.service
 
 import com.github.grambbledook.example.spark.dto.Account
+import com.github.grambbledook.example.spark.dto.BusinessCode
 import com.github.grambbledook.example.spark.lock.AccountRWLockKotlin
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import io.vavr.control.Try
@@ -24,7 +25,7 @@ class InMemoryAccountServiceImpl(startId: Long, private val accountRepo: InMemor
     override fun getInfo(id: Long): Try<Account> {
         return lock.lockRead(id) {
             Try { accountRepo.findById(id)!! }.recover {
-                throw AccountNotFoundError("Account [$id] not found")
+                throw AccountError("Account [$id] not found", BusinessCode.ACCOUNT_NOT_FOUND)
             }
         }
     }
@@ -53,7 +54,7 @@ class InMemoryAccountServiceImpl(startId: Long, private val accountRepo: InMemor
     private fun withdraw0(it: Account, amount: Double): Account {
         val new = it.copy(amount = it.amount - amount)
 
-        return if (new.amount < 0) throw AccountNotEnoughMoneyError("Not enough money on account [${it.id}]")
+        return if (new.amount < 0) throw AccountError("Not enough money on account [${it.id}]", BusinessCode.INSUFFICIENT_FUNDS)
         else accountRepo.save(new)
     }
 
