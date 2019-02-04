@@ -1,12 +1,13 @@
 package com.github.grambbledook.example.spark.service
 
+import arrow.core.Either
 import com.github.grambbledook.example.spark.dto.Account
-import io.vavr.control.Try
+import java.math.BigDecimal
 
 interface AccountService {
-    fun create(amount: Double, owner: String): Try<Account>
-    fun getInfo(id: Long): Try<Account>
-    fun transfer(from: Long, to: Long, amount: Double): Try<Account>
-    fun deposit(id: Long, amount: Double): Try<Account>
-    fun withdraw(id: Long, amount: Double): Try<Account>
+    fun create(amount: BigDecimal, owner: String):Either<ServiceError, Account>
+    fun getInfo(id: Long): Either<ServiceError, Account>
+    fun transfer(from: Long, to: Long, amount: BigDecimal): Either<ServiceError, Account>
+    fun deposit(id: Long, amount: BigDecimal): Either<ServiceError, Account>
+    fun withdraw(id: Long, amount: BigDecimal): Either<ServiceError, Account>
 }

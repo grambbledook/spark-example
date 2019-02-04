@@ -1,8 +1,10 @@
 package com.github.grambbledook.example.spark.handler.traits
 
+import arrow.core.Either
 import com.github.grambbledook.example.spark.dto.*
 import com.github.grambbledook.example.spark.service.AccountError
-import io.vavr.control.Try
+import com.github.grambbledook.example.spark.service.ServiceError
+import com.github.grambbledook.example.spark.service.UnknownError
 import spark.Request
 import spark.Response
 import spark.Route
@@ -29,16 +31,19 @@ interface HandlerMixin<T> : Route, Jackson<T>, Logging {
 
     fun getValue(request: Request): T
 
-    fun process(value: T): Result
+    fun process(request: T): Result
 
-    fun performAction(action: () -> Try<Account>): Try<Result> {
-        return action().map { Success<Account>(it) }
+    fun performAction(action: () -> Either<ServiceError, Account>): Result {
+        return action().fold(
+                { l -> generateErrorResponse(l) },
+                { r -> Success(r) }
+        )
     }
 
-    fun generateErrorResponse(it: Throwable): Result {
+    fun generateErrorResponse(it: ServiceError): Result {
         return when (it) {
-            is AccountError -> Failure(it.code, it.message)
-            else -> Error(it.message)
+            is UnknownError -> Error(it.e)
+            is AccountError -> Failure(it.code, null)
         }
     }
 

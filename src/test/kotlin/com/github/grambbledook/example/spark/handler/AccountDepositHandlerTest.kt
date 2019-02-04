@@ -1,20 +1,23 @@
 package com.github.grambbledook.example.spark.handler
 
+import arrow.core.Left
+import arrow.core.Right
 import com.github.grambbledook.example.spark.dto.Account
 import com.github.grambbledook.example.spark.dto.Error
 import com.github.grambbledook.example.spark.dto.Success
-import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.THOUSAND_UNITS
 import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.FIRST
-import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.NEW_AMOUNT
+import com.github.grambbledook.example.spark.service.UnknownError
 import com.github.grambbledook.example.spark.service.AccountService
 import io.mockk.every
 import io.mockk.mockk
-import io.vavr.control.Try
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.math.BigDecimal
+
 
 internal typealias Request = AccountDepositHandler.AccountDepositRequest
 
+@Suppress("UNCHECKED_CAST")
 class AccountDepositHandlerTest : HandlerFixture {
 
     private val service = mockk<AccountService>()
@@ -23,23 +26,24 @@ class AccountDepositHandlerTest : HandlerFixture {
     @Test
     fun testDepositResultsInSuccessResult() {
         every {
-            service.deposit(FIRST, THOUSAND_UNITS)
+            service.deposit(FIRST, BigDecimal(1000.00))
         }.returns(
-                Try.success(Account(FIRST, NEW_AMOUNT, "John doe"))
+                Right( Account(FIRST, BigDecimal(1200.00), "John doe") )
         )
 
-        val result = handler.process(Request(FIRST, THOUSAND_UNITS)) as Success<Account>
+        val result = handler.process(Request(FIRST, BigDecimal(1000.00))) as Success<Account>
 
         assertEquals(FIRST, result.payload.id)
-        assertEquals(NEW_AMOUNT, result.payload.amount, 1e-2)
+        assertEquals(BigDecimal(1200.00), result.payload.amount)
     }
 
     @Test
     fun testInternalErrorCausesCode500() {
-        every { service.deposit(any(), any()) }.returns(Try.failure(Exception("Error thrown")))
+        val internalError = Exception("Error thrown")
+        every { service.deposit(any(), any()) }.returns(Left(UnknownError(internalError)))
 
-        val result = handler.process(Request(FIRST, THOUSAND_UNITS)) as Error
+        val result = handler.process(Request(FIRST, BigDecimal(1000.00))) as Error
 
-        assertEquals("Error thrown", result.reason)
+        assertEquals(internalError, result.reason)
     }
 }

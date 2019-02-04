@@ -7,6 +7,7 @@ import com.github.grambbledook.example.spark.service.AccountService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spark.Request
+import java.math.BigDecimal
 
 class CreateAccountHandler(private val accountService: AccountService, override val mapper: ObjectMapper) : HandlerMixin<CreateAccountHandler.CreateAccountRequest> {
 
@@ -18,10 +19,8 @@ class CreateAccountHandler(private val accountService: AccountService, override 
         logger.trace("Create account request received")
         return performAction {
             accountService.create(request.amount, request.owner)
-        }.onFailure {
-            logger.error("An error occurred on creating account for owner [${request.owner}]", it)
-        }.recover { generateErrorResponse(it) }.get()
+        }
     }
 
-    data class CreateAccountRequest(val amount: Double, val owner: String)
+    data class CreateAccountRequest(val amount: BigDecimal, val owner: String)
 }

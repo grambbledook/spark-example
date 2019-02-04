@@ -7,6 +7,7 @@ import com.github.grambbledook.example.spark.service.AccountService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spark.Request
+import java.math.BigDecimal
 
 class AccountWithdrawHandler(private val accountService: AccountService, override val mapper: ObjectMapper) : HandlerMixin<AccountWithdrawHandler.AccountWithdrawRequest> {
 
@@ -18,10 +19,8 @@ class AccountWithdrawHandler(private val accountService: AccountService, overrid
         logger.trace("Withdraw money request received for account [${request.id}]")
         return performAction {
             accountService.withdraw(request.id, request.amount)
-        }.onFailure {
-            logger.error("An error occurred on withdrawing money from account [${request.id}]", it)
-        }.recover { generateErrorResponse(it) }.get()
+        }
     }
 
-    data class AccountWithdrawRequest(val id: Long, val amount: Double)
+    data class AccountWithdrawRequest(val id: Long, val amount: BigDecimal)
 }

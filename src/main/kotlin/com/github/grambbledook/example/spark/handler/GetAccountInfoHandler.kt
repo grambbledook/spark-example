@@ -14,12 +14,11 @@ class GetAccountInfoHandler(private val accountService: AccountService, override
 
     override fun getValue(request: Request): Long = request.params("id").toLong()
 
-    override fun process(id: Long): Result {
-        logger.trace("Get Account Info request for id [$id]")
+    override fun process(request: Long): Result {
+        logger.trace("Get Account Info request for id [$request]")
         return performAction {
-            accountService.getInfo(id)
-        }.onFailure {
-            logger.error("An error occurred on querying account [$id] info", it)
-        }.recover { generateErrorResponse(it) }.get()
+            accountService.getInfo(request)
+        }
     }
+
 }

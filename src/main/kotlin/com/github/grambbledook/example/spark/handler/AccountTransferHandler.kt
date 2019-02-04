@@ -7,6 +7,7 @@ import com.github.grambbledook.example.spark.service.AccountService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spark.Request
+import java.math.BigDecimal
 
 class AccountTransferHandler(private val accountService: AccountService, override val mapper: ObjectMapper) : HandlerMixin<AccountTransferHandler.AccountTransferRequest> {
 
@@ -18,10 +19,8 @@ class AccountTransferHandler(private val accountService: AccountService, overrid
         logger.trace("Transfer money request received for accounts [${request.from} -> ${request.to}]")
         return performAction {
             accountService.transfer(request.from, request.to, request.amount)
-        }.onFailure {
-            logger.error("An error occurred on money transfer from account [${request.from}] to account [${request.to}]", it)
-        }.recover { generateErrorResponse(it) }.get()
+        }
     }
 
-    data class AccountTransferRequest(val from: Long, val to: Long, val amount: Double)
+    data class AccountTransferRequest(val from: Long, val to: Long, val amount: BigDecimal)
 }
