@@ -69,7 +69,7 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
         val newAmount = account.amount - amount
 
         return if (newAmount < BigDecimal.ZERO)
-            Left(AccountError(AccountCode.INSUFFICIENT_FUNDS, "Not enough funds on account [${account.id}] for operation."))
+            Left(AccountError(AccountCode.INSUFFICIENT_FUNDS, "Unable to complete operation. Not enough funds on account [${account.id}]."))
         else
             Right(accountRepo.save(account.copy(amount = newAmount)))
     }
@@ -86,7 +86,7 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
     }
 
     private fun deposit0(account: Account, amount: BigDecimal): Either<ServiceError, Account> {
-        val newAmount = account.amount - amount
+        val newAmount = account.amount + amount
 
         return Right(accountRepo.save(account.copy(amount = newAmount)))
     }

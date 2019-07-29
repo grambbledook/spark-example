@@ -5,11 +5,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.dataformat.csv.CsvSchema
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.grambbledook.example.spark.domain.Account
-import com.github.grambbledook.example.spark.handler.AccountTransferHandler
-import com.github.grambbledook.example.spark.handler.AccountDepositHandler
-import com.github.grambbledook.example.spark.handler.AccountWithdrawHandler
-import com.github.grambbledook.example.spark.handler.CreateAccountHandler
-import com.github.grambbledook.example.spark.handler.GetAccountInfoHandler
+import com.github.grambbledook.example.spark.handler.*
 import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import com.github.grambbledook.example.spark.service.InMemoryAccountServiceImpl
@@ -31,12 +27,13 @@ fun main(args: Array<String>) {
     port(config.port!!)
 
     val service = initAccountService(config)
+    val transformer = JsonTransformer(mapper)
 
-    get("/accounts/:id", GetAccountInfoHandler(service, mapper))
-    post("/accounts", CreateAccountHandler(service, mapper))
-    post("/accounts/deposit", AccountDepositHandler(service, mapper))
-    post("/accounts/withdraw", AccountWithdrawHandler(service, mapper))
-    post("/accounts/transfer", AccountTransferHandler(service, mapper))
+    get("/accounts/:id", GetAccountInfoHandler(service), transformer)
+    post("/accounts", CreateAccountHandler(service, mapper), transformer)
+    post("/accounts/deposit", AccountDepositHandler(service, mapper), transformer)
+    post("/accounts/withdraw", AccountWithdrawHandler(service, mapper), transformer)
+    post("/accounts/transfer", AccountTransferHandler(service, mapper), transformer)
 
 }
 

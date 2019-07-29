@@ -13,7 +13,7 @@ enum class ServiceErrorCode(override val code: Int): BusinessCode {
 }
 
 enum class AccountCode(override val code: Int) : BusinessCode {
+    ACCOUNT_NOT_FOUND(404),
     INVALID_AMOUNT(1000),
-    ACCOUNT_NOT_FOUND(1000),
     INSUFFICIENT_FUNDS(2000)
 }

@@ -1,12 +1,11 @@
 package com.github.grambbledook.example.spark.handler
 
 import arrow.core.Try
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.grambbledook.example.spark.domain.Result
 import com.github.grambbledook.example.spark.service.AccountService
 import spark.Request
 
-class GetAccountInfoHandler(private val accountService: AccountService, override val mapper: ObjectMapper) : AbstractHandler<Long>(mapper) {
+class GetAccountInfoHandler(private val accountService: AccountService) : AbstractHandler<Long>() {
 
     override fun getValue(request: Request): Try<Long> = Try.invoke { request.params("id").toLong() }
 

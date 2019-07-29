@@ -15,7 +15,7 @@ import spark.Request
 import spark.Response
 import spark.Route
 
-interface HandlerMixin<T> : Route, Jackson, Logging {
+interface HandlerMixin<T> : Route, Logging {
 
     override fun handle(request: Request, response: Response): Any {
         val value = getValue(request)
@@ -25,15 +25,15 @@ interface HandlerMixin<T> : Route, Jackson, Logging {
             else -> WorkflowFailure(BAD_REQUEST, "Unable to parse request.")
         }
 
-        return response.apply {
+        response.apply {
             when (result) {
                 is ServiceFailure -> status(500)
                 is WorkflowFailure -> status(400)
                 else -> status(200)
             }
+        }
 
-            body(result.asJsonString())
-        }.body()
+        return result
     }
 
     fun getValue(request: Request): Try<T>

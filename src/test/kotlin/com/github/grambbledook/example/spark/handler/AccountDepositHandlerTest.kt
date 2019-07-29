@@ -23,11 +23,11 @@ class AccountDepositHandlerTest : HandlerFixture {
     private val handler = AccountDepositHandler(service, mockk())
 
     @Test
-    fun testDepositResultsInSuccessResult() {
+    fun `Test Successfully deposited to account x`() {
         every {
             service.deposit(FIRST, BigDecimal(1000.00))
         }.returns(
-                Right( Account(FIRST, BigDecimal(1200.00), "John doe") )
+            Right(Account(FIRST, BigDecimal(1200.00), "John doe"))
         )
 
         val result = handler.process(Request(FIRST, BigDecimal(1000.00))) as WorkflowSuccess<Account>
