@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.dataformat.csv.CsvSchema
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.github.grambbledook.example.spark.dto.Account
+import com.github.grambbledook.example.spark.domain.Account
 import com.github.grambbledook.example.spark.handler.AccountTransferHandler
 import com.github.grambbledook.example.spark.handler.AccountDepositHandler
 import com.github.grambbledook.example.spark.handler.AccountWithdrawHandler
@@ -18,6 +18,7 @@ import spark.Spark.post
 import spark.Spark.port
 import java.io.File
 import java.net.URI
+import java.util.concurrent.atomic.AtomicLong
 
 fun main(args: Array<String>) {
     val mapper = ObjectMapper().apply { registerModule(KotlinModule()) }
@@ -41,8 +42,10 @@ fun main(args: Array<String>) {
 
 fun initAccountService(config: AppConfig): InMemoryAccountServiceImpl {
     val initialData = loadData(config.storage!!)
+    val idGenerator = AtomicLong(initialData.keys.max() ?: 1)
+
     return InMemoryAccountServiceImpl(
-            startId = initialData.keys.max() ?: 1,
+            idGenerator = idGenerator,
             accountRepo = InMemoryAccountRepository(initialData),
             lock = AccountRWLock()
     )

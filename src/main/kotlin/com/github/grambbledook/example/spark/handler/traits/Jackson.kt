@@ -2,8 +2,8 @@ package com.github.grambbledook.example.spark.handler.traits
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
-interface Jackson<T> {
+interface Jackson {
     val mapper: ObjectMapper
 
-    fun toString(payload: Any): String = mapper.writeValueAsString(payload)
+    fun <T> T.asJsonString(): String = mapper.writeValueAsString(this)
 }

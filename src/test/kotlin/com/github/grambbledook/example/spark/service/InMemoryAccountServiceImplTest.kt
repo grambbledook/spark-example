@@ -1,6 +1,7 @@
 package com.github.grambbledook.example.spark.service
 
-import com.github.grambbledook.example.spark.dto.BusinessCode
+import com.github.grambbledook.example.spark.domain.AccountError
+import com.github.grambbledook.example.spark.domain.error.BusinessCode
 import com.github.grambbledook.example.spark.ext.left
 import com.github.grambbledook.example.spark.ext.right
 import com.github.grambbledook.example.spark.lock.AccountRWLock
@@ -26,7 +27,7 @@ class InMemoryAccountServiceImplTest : AccountFixture {
     @Test
     fun testGetNotExistingAccountInfoResultsInError() {
         val account = service.getInfo(UNKNOWN)
-        Assert.assertEquals(BusinessCode.ACCOUNT_NOT_FOUND, (account.left() as AccountError).code)
+        Assert.assertEquals(BusinessCode.ACCOUNT_NOT_FOUND, (account.left() as AccountError).error)
     }
 
     @Test
@@ -59,7 +60,7 @@ class InMemoryAccountServiceImplTest : AccountFixture {
         Assert.assertEquals(100.00, before.right().amount.toDouble(), 1e-2)
 
         val result = service.withdraw(FIRST, BigDecimal(1000.00))
-        Assert.assertEquals(BusinessCode.INSUFFICIENT_FUNDS, (result.left() as AccountError).code)
+        Assert.assertEquals(BusinessCode.INSUFFICIENT_FUNDS, (result.left() as AccountError).error)
 
         val after = service.getInfo(FIRST)
         Assert.assertEquals(100.00, after.right().amount.toDouble(), 1e-2)
@@ -92,7 +93,7 @@ class InMemoryAccountServiceImplTest : AccountFixture {
         Assert.assertEquals(0.00, secondBefore.right().amount.toDouble(), 1e-2)
 
         val result = service.transfer(FIRST, SECOND, BigDecimal(1000.00))
-        Assert.assertEquals(BusinessCode.INSUFFICIENT_FUNDS, (result.left() as AccountError).code)
+        Assert.assertEquals(BusinessCode.INSUFFICIENT_FUNDS, (result.left() as AccountError).error)
 
         val firstAfter = service.getInfo(FIRST)
         Assert.assertEquals(100.00, firstAfter.right().amount.toDouble(), 1e-2)

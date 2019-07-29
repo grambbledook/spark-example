@@ -1,34 +1,42 @@
 package com.github.grambbledook.example.spark.service
 
-import arrow.core.*
-import com.github.grambbledook.example.spark.dto.Account
-import com.github.grambbledook.example.spark.dto.BusinessCode
+import arrow.core.Either
+import arrow.core.Left
+import arrow.core.None
+import arrow.core.Right
+import arrow.core.Some
+import com.github.grambbledook.example.spark.domain.Account
+import com.github.grambbledook.example.spark.domain.AccountError
+import com.github.grambbledook.example.spark.domain.ServiceError
+import com.github.grambbledook.example.spark.domain.error.AccountCode
+import com.github.grambbledook.example.spark.handler.traits.Logging
 import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicLong
 
-class InMemoryAccountServiceImpl(startId: Long, private val accountRepo: InMemoryAccountRepository, private val lock: AccountRWLock) : AccountService {
+class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
+                                 private val accountRepo: InMemoryAccountRepository,
+                                 private val lock: AccountRWLock) : AccountService, Logging {
 
-    private val idGenerator = AtomicLong(startId)
+    override val logger: org.slf4j.Logger = LoggerFactory.getLogger(javaClass::class.java)
 
     override fun create(amount: BigDecimal, owner: String): Either<ServiceError, Account> {
         val id = idGenerator.getAndIncrement()
 
         return lock.lockWrite(id) {
-            accountRepo.save(Account(id, amount, owner))
-        }.toEither { UnknownError(it) }
+            Right(accountRepo.save(Account(id, amount, owner)))
+        }
     }
 
     override fun getInfo(id: Long): Either<ServiceError, Account> {
         return lock.lockRead(id) {
-            accountRepo.findById(id).toEither {
-                UnknownError(it)
-            }.flatMap {
-                when (it) {
-                    is Some -> Right(it.t)
-                    is None -> Left(AccountError(BusinessCode.ACCOUNT_NOT_FOUND))
-                }
+            val account = accountRepo.findById(id)
+
+            when (account) {
+                is Some -> Right(account.t)
+                is None -> Left(AccountError(AccountCode.ACCOUNT_NOT_FOUND, "Account [$id] not found."))
             }
         }
     }
@@ -36,13 +44,11 @@ class InMemoryAccountServiceImpl(startId: Long, private val accountRepo: InMemor
     override fun transfer(from: Long, to: Long, amount: BigDecimal): Either<ServiceError, Account> {
         return lock.lockWrite(minOf(from, to)) {
             lock.lockWrite(maxOf(from, to)) {
-                getInfo(from).flatMap { acc1 ->
-                    getInfo(to).flatMap { acc2 ->
-                        withdraw0(acc1, amount).map {
-                            deposit0(acc2, amount)
-                            it
-                        }
-                    }
+                val result = withdraw(from, amount)
+
+                when (result) {
+                    is Either.Right -> deposit(to, amount)
+                    else -> result
                 }
             }
         }
@@ -50,30 +56,39 @@ class InMemoryAccountServiceImpl(startId: Long, private val accountRepo: InMemor
 
     override fun withdraw(id: Long, amount: BigDecimal): Either<ServiceError, Account> {
         return lock.lockWrite(id) {
-            getInfo(id).flatMap {
-                withdraw0(it, amount)
+            val account = getInfo(id)
+
+            when (account) {
+                is Either.Right -> withdraw0(account.b, amount)
+                else -> account
             }
         }
     }
 
-    private fun withdraw0(it: Account, amount: BigDecimal): Either<ServiceError, Account> {
-        val new = it.copy(amount = it.amount - amount)
+    private fun withdraw0(account: Account, amount: BigDecimal): Either<ServiceError, Account> {
+        val newAmount = account.amount - amount
 
-        return if (new.amount < BigDecimal.ZERO) Left(AccountError(BusinessCode.INSUFFICIENT_FUNDS))
-        else accountRepo.save(new).toEither { UnknownError(it) }
+        return if (newAmount < BigDecimal.ZERO)
+            Left(AccountError(AccountCode.INSUFFICIENT_FUNDS, "Not enough funds on account [${account.id}] for operation."))
+        else
+            Right(accountRepo.save(account.copy(amount = newAmount)))
     }
 
     override fun deposit(id: Long, amount: BigDecimal): Either<ServiceError, Account> {
         return lock.lockWrite(id) {
-            getInfo(id).flatMap {
-                deposit0(it, amount)
+            val account = getInfo(id)
+
+            when (account) {
+                is Either.Right -> deposit0(account.b, amount)
+                else -> account
             }
         }
     }
 
-    private fun deposit0(it: Account, amount: BigDecimal): Either<ServiceError, Account> {
-        val new = it.copy(amount = it.amount + amount)
-        return accountRepo.save(new).toEither { UnknownError(it) }
+    private fun deposit0(account: Account, amount: BigDecimal): Either<ServiceError, Account> {
+        val newAmount = account.amount - amount
+
+        return Right(accountRepo.save(account.copy(amount = newAmount)))
     }
 
 }

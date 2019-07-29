@@ -1,11 +1,10 @@
 package com.github.grambbledook.example.spark.repository
 
 import arrow.core.Option
-import arrow.core.Try
-import com.github.grambbledook.example.spark.dto.Account
+import com.github.grambbledook.example.spark.domain.Account
 
 interface AccountRepository {
-    fun findById(id: Long): Try<Option<Account>>
-    fun save(account: Account): Try<Account>
+    fun findById(id: Long): Option<Account>
+    fun save(account: Account): Account
 }
 

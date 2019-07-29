@@ -1,26 +1,23 @@
 package com.github.grambbledook.example.spark.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.grambbledook.example.spark.handler.traits.HandlerMixin
-import com.github.grambbledook.example.spark.dto.Result
+import com.github.grambbledook.example.spark.domain.error.AccountCode.INVALID_AMOUNT
+import com.github.grambbledook.example.spark.domain.Result
+import com.github.grambbledook.example.spark.domain.WorkflowFailure
+import com.github.grambbledook.example.spark.domain.request.CreateAccountRequest
 import com.github.grambbledook.example.spark.service.AccountService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import spark.Request
 import java.math.BigDecimal
 
-class CreateAccountHandler(private val accountService: AccountService, override val mapper: ObjectMapper) : HandlerMixin<CreateAccountHandler.CreateAccountRequest> {
-
-    override val logger: Logger = LoggerFactory.getLogger(CreateAccountHandler::class.java)
-
-    override fun getValue(request: Request): CreateAccountRequest = mapper.readValue(request.body(), CreateAccountRequest::class.java)
+class CreateAccountHandler(private val service: AccountService, mapper: ObjectMapper) : AbstractJsonHandler<CreateAccountRequest>(mapper, CreateAccountRequest::class.java) {
 
     override fun process(request: CreateAccountRequest): Result {
-        logger.trace("Create account request received")
-        return performAction {
-            accountService.create(request.amount, request.owner)
+        logger.info("Create account request received")
+
+        return if (request.amount <= BigDecimal.ZERO) {
+            WorkflowFailure(INVALID_AMOUNT, "Starting amount must be greater than zero.")
+        } else performAction {
+            service.create(request.amount, request.owner)
         }
     }
 
-    data class CreateAccountRequest(val amount: BigDecimal, val owner: String)
 }

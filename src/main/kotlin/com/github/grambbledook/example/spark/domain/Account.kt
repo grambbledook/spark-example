@@ -1,4 +1,4 @@
-package com.github.grambbledook.example.spark.dto
+package com.github.grambbledook.example.spark.domain
 
 import java.math.BigDecimal
 

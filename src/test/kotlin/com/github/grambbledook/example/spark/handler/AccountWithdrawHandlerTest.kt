@@ -2,13 +2,13 @@ package com.github.grambbledook.example.spark.handler
 
 import arrow.core.Left
 import arrow.core.Right
-import com.github.grambbledook.example.spark.dto.Account
-import com.github.grambbledook.example.spark.dto.Failure
-import com.github.grambbledook.example.spark.dto.Success
+import com.github.grambbledook.example.spark.domain.Account
+import com.github.grambbledook.example.spark.domain.WorkflowFailure
+import com.github.grambbledook.example.spark.domain.Success
 import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.FIRST
-import com.github.grambbledook.example.spark.service.AccountError
+import com.github.grambbledook.example.spark.domain.AccountError
 import com.github.grambbledook.example.spark.service.AccountService
-import com.github.grambbledook.example.spark.dto.BusinessCode
+import com.github.grambbledook.example.spark.domain.error.BusinessCode
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -45,10 +45,10 @@ class AccountWithdrawHandlerTest : HandlerFixture {
                Left(AccountError(BusinessCode.INSUFFICIENT_FUNDS))
         )
 
-        val result = handler.process(WithdrawRequest(FIRST, BigDecimal(1000.00))) as Failure
+        val result = handler.process(WithdrawRequest(FIRST, BigDecimal(1000.00))) as WorkflowFailure
 
-        assertEquals(BusinessCode.INSUFFICIENT_FUNDS, result.businessCode)
-        assertEquals(null, result.reason)
+        assertEquals(BusinessCode.INSUFFICIENT_FUNDS, result.code)
+        assertEquals(null, result.message)
     }
 
 }

@@ -1,21 +1,18 @@
 package com.github.grambbledook.example.spark.handler
 
+import arrow.core.Try
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.grambbledook.example.spark.dto.Result
-import com.github.grambbledook.example.spark.handler.traits.HandlerMixin
+import com.github.grambbledook.example.spark.domain.Result
 import com.github.grambbledook.example.spark.service.AccountService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import spark.Request
 
-class GetAccountInfoHandler(private val accountService: AccountService, override val mapper: ObjectMapper) : HandlerMixin<Long> {
+class GetAccountInfoHandler(private val accountService: AccountService, override val mapper: ObjectMapper) : AbstractHandler<Long>(mapper) {
 
-    override val logger: Logger = LoggerFactory.getLogger(GetAccountInfoHandler::class.java)
-
-    override fun getValue(request: Request): Long = request.params("id").toLong()
+    override fun getValue(request: Request): Try<Long> = Try.invoke { request.params("id").toLong() }
 
     override fun process(request: Long): Result {
-        logger.trace("Get Account Info request for id [$request]")
+        logger.info("Get Account Info request for id [$request]")
+
         return performAction {
             accountService.getInfo(request)
         }
