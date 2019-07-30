@@ -3,19 +3,18 @@ package com.github.grambbledook.example.spark.handler.traits
 import arrow.core.Either
 import arrow.core.Success
 import arrow.core.Try
-import com.github.grambbledook.example.spark.domain.Account
-import com.github.grambbledook.example.spark.domain.error.BadRequest.BAD_REQUEST
-import com.github.grambbledook.example.spark.domain.Result
-import com.github.grambbledook.example.spark.domain.error.ServiceErrorCode.INTERNAL_ERROR
-import com.github.grambbledook.example.spark.domain.ServiceFailure
-import com.github.grambbledook.example.spark.domain.WorkflowFailure
-import com.github.grambbledook.example.spark.domain.WorkflowSuccess
-import com.github.grambbledook.example.spark.domain.ServiceError
+import com.github.grambbledook.example.spark.dto.error.BadRequest.BAD_REQUEST
+import com.github.grambbledook.example.spark.dto.Result
+import com.github.grambbledook.example.spark.dto.error.ServiceErrorCode.INTERNAL_ERROR
+import com.github.grambbledook.example.spark.dto.ServiceFailure
+import com.github.grambbledook.example.spark.dto.WorkflowFailure
+import com.github.grambbledook.example.spark.dto.WorkflowSuccess
+import com.github.grambbledook.example.spark.dto.ServiceError
 import spark.Request
 import spark.Response
 import spark.Route
 
-interface HandlerMixin<T> : Route, Logging {
+interface HandlerMixin<I, O> : Route, Logging {
 
     override fun handle(request: Request, response: Response): Any {
         val value = getValue(request)
@@ -36,11 +35,11 @@ interface HandlerMixin<T> : Route, Logging {
         return result
     }
 
-    fun getValue(request: Request): Try<T>
+    fun getValue(request: Request): Try<I>
 
-    fun process(request: T): Result
+    fun process(request: I): Result
 
-    fun performAction(action: () -> Either<ServiceError, Account>): Result {
+    fun performAction(action: () -> Either<ServiceError, O>): Result {
         val result = try {
             action()
         } catch (e: Exception) {

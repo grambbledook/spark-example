@@ -1,45 +1,39 @@
 package com.github.grambbledook.example.spark.handler
 
-import arrow.core.Left
-import arrow.core.Right
-import com.github.grambbledook.example.spark.domain.Account
-import com.github.grambbledook.example.spark.domain.WorkflowFailure
-import com.github.grambbledook.example.spark.domain.Success
-import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.FIRST
-import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.SECOND
-import com.github.grambbledook.example.spark.domain.AccountError
-import com.github.grambbledook.example.spark.service.AccountService
-import com.github.grambbledook.example.spark.domain.error.BusinessCode
-import io.mockk.every
-import io.mockk.mockk
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import com.github.grambbledook.example.spark.fixture.RestFixture
+import com.github.grambbledook.example.spark.fixture.SparkFixture
+import com.github.grambbledook.example.spark.dto.domain.Account
+import com.github.grambbledook.example.spark.dto.error.AccountCode
+import com.github.grambbledook.example.spark.ext.left
+import com.github.grambbledook.example.spark.ext.right
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 @Suppress("UNCHECKED_CAST")
-class GetAccountInfoHandlerTest : HandlerFixture {
-
-    private val service = mockk<AccountService>()
-    private val handler = GetAccountInfoHandler(service, mockk())
+class GetAccountInfoHandlerTest : HandlerFixture, RestFixture, SparkFixture {
 
     @Test
-    fun testExistingAccountInfoSuccessResult() {
-        val account = Account(FIRST, BigDecimal(1000.00), "John doe")
+    fun `Test account is successfully created for valid input parameters`(owner: String) {
+        val account = createAccount(owner, BigDecimal(1000))
+        Assertions.assertEquals(Account(1, BigDecimal(1000), "John Doe"), account.right())
+    }
 
-        every { service.getInfo(FIRST) }.returns(Right(account))
+    @Test
+    fun `Test INVALID_AMOUNT is returned when creating account with negative amount`() {
+        val error = createAccount("John Doe", BigDecimal(-1000)).left()
 
-        val result = handler.process(FIRST) as Success<Account>
-        assertEquals(account, result.payload)
+        Assertions.assertEquals(AccountCode.INVALID_AMOUNT, AccountCode.valueOf(error.code))
     }
 
     @Test
     fun testAccountDoesNotExist() {
-        every { service.getInfo(SECOND) }.returns(Left(AccountError(BusinessCode.ACCOUNT_NOT_FOUND)))
+//        every { service.getInfo(SECOND) }.returns(Left(AccountServiceError(ErrorCode.ACCOUNT_NOT_FOUND)))
+//
+//        val result = handler.process(SECOND) as WorkflowFailure
 
-        val result = handler.process(SECOND) as WorkflowFailure
-
-        assertEquals(BusinessCode.ACCOUNT_NOT_FOUND, result.code)
-        assertEquals(null, result.message)
+//        assertEquals(ErrorCode.ACCOUNT_NOT_FOUND, result.code)
+//        assertEquals(null, result.message)
     }
 
 }

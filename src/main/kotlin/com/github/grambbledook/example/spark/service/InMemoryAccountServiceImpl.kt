@@ -5,10 +5,10 @@ import arrow.core.Left
 import arrow.core.None
 import arrow.core.Right
 import arrow.core.Some
-import com.github.grambbledook.example.spark.domain.Account
-import com.github.grambbledook.example.spark.domain.AccountError
-import com.github.grambbledook.example.spark.domain.ServiceError
-import com.github.grambbledook.example.spark.domain.error.AccountCode
+import com.github.grambbledook.example.spark.dto.domain.Account
+import com.github.grambbledook.example.spark.dto.ServiceError
+import com.github.grambbledook.example.spark.dto.error.AccountCode.INSUFFICIENT_FUNDS
+import com.github.grambbledook.example.spark.dto.error.AccountCode.ACCOUNT_NOT_FOUND
 import com.github.grambbledook.example.spark.handler.traits.Logging
 import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
@@ -23,7 +23,7 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
     override val logger: org.slf4j.Logger = LoggerFactory.getLogger(javaClass::class.java)
 
     override fun create(amount: BigDecimal, owner: String): Either<ServiceError, Account> {
-        val id = idGenerator.getAndIncrement()
+        val id = idGenerator.incrementAndGet()
 
         return lock.lockWrite(id) {
             Right(accountRepo.save(Account(id, amount, owner)))
@@ -36,7 +36,7 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
 
             when (account) {
                 is Some -> Right(account.t)
-                is None -> Left(AccountError(AccountCode.ACCOUNT_NOT_FOUND, "Account [$id] not found."))
+                is None -> Left(AccountServiceError(ACCOUNT_NOT_FOUND, "Account [$id] not found."))
             }
         }
     }
@@ -69,7 +69,7 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
         val newAmount = account.amount - amount
 
         return if (newAmount < BigDecimal.ZERO)
-            Left(AccountError(AccountCode.INSUFFICIENT_FUNDS, "Unable to complete operation. Not enough funds on account [${account.id}]."))
+            Left(AccountServiceError(INSUFFICIENT_FUNDS, "Unable to complete operation. Not enough funds on account [${account.id}]."))
         else
             Right(accountRepo.save(account.copy(amount = newAmount)))
     }

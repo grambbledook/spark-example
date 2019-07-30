@@ -1,7 +1,7 @@
 package com.github.grambbledook.example.spark.repository
 
 import arrow.core.Option
-import com.github.grambbledook.example.spark.domain.Account
+import com.github.grambbledook.example.spark.dto.domain.Account
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 

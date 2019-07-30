@@ -1,8 +1,8 @@
 package com.github.grambbledook.example.spark.service
 
 import arrow.core.Either
-import com.github.grambbledook.example.spark.domain.Account
-import com.github.grambbledook.example.spark.domain.ServiceError
+import com.github.grambbledook.example.spark.dto.domain.Account
+import com.github.grambbledook.example.spark.dto.ServiceError
 import java.math.BigDecimal
 
 interface AccountService {

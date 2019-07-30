@@ -1,6 +1,6 @@
 package com.github.grambbledook.example.spark.lock
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier

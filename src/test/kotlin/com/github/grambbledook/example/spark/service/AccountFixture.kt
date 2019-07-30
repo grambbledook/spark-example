@@ -1,13 +1,13 @@
 package com.github.grambbledook.example.spark.service
 
 import com.github.grambbledook.example.spark.ext.right
-import org.junit.Before
+import org.junit.jupiter.api.BeforeEach
 import java.math.BigDecimal
 
 interface AccountFixture {
     val service: InMemoryAccountServiceImpl
 
-    @Before
+    @BeforeEach
     fun setup() {
         service.create(BigDecimal(100.00), "Jane Doe").right().id
         service.create(BigDecimal(0.00), "Jane Doe").right().id
