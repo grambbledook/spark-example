@@ -1,48 +1,65 @@
-//package com.github.grambbledook.example.spark.handler
-//
-//import arrow.core.Left
-//import arrow.core.Right
-//import com.github.grambbledook.example.spark.domain.Account
-//import com.github.grambbledook.example.spark.domain.WorkflowSuccess
-//import com.github.grambbledook.example.spark.domain.request.AccountDepositRequest
-//import com.github.grambbledook.example.spark.handler.HandlerFixture.Companion.FIRST
-//import com.github.grambbledook.example.spark.service.AccountService
-//import io.mockk.every
-//import io.mockk.mockk
-//import org.junit.Assert.assertEquals
-//import org.junit.Test
-//import java.math.BigDecimal
-//
-//
-//internal typealias Request = AccountDepositRequest
-//
-//@Suppress("UNCHECKED_CAST")
-//class AccountDepositHandlerTest : HandlerFixture {
-//
-//    private val service = mockk<AccountService>()
-//    private val handler = AccountDepositHandler(service, mockk())
-//
-//    @Test
-//    fun `Test Successfully deposited to account x`() {
-//        every {
-//            service.deposit(FIRST, BigDecimal(1000.00))
-//        }.returns(
-//            Right(Account(FIRST, BigDecimal(1200.00), "John doe"))
-//        )
-//
-//        val result = handler.process(Request(FIRST, BigDecimal(1000.00))) as WorkflowSuccess<Account>
-//
-//        assertEquals(FIRST, result.payload.id)
-//        assertEquals(BigDecimal(1200.00), result.payload.amount)
-//    }
-//
-//    @Test
-//    fun testInternalErrorCausesCode500() {
-//        val internalError = Exception("Error thrown")
-//        every { service.deposit(any(), any()) }.returns(Left(UnknownError(internalError)))
-//
-//        val result = handler.process(Request(FIRST, BigDecimal(1000.00))) as Error
-//
-//        assertEquals(internalError, result.reason)
-//    }
-//}
+package com.github.grambbledook.example.spark.handler
+
+import com.github.grambbledook.example.spark.dto.error.AccountCode
+import com.github.grambbledook.example.spark.dto.error.AccountCode.ACCOUNT_NOT_FOUND
+import com.github.grambbledook.example.spark.dto.error.AccountCode.INVALID_AMOUNT
+import com.github.grambbledook.example.spark.dto.response.TransactionType.DEPOSIT
+import com.github.grambbledook.example.spark.ext.accountId
+import com.github.grambbledook.example.spark.ext.left
+import com.github.grambbledook.example.spark.ext.right
+import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.THOUSAND
+import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.ZERO
+import com.github.grambbledook.example.spark.fixture.RestFixture
+import com.github.grambbledook.example.spark.fixture.UserFixture
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
+
+
+@Tag("INTEGRATION")
+class AccountDepositHandlerTest : UserFixture, RestFixture {
+
+    @Test
+    fun `Test money successfully deposited to account`() {
+        val accountId = createAccount(UserFixture.johnDoe, ZERO).accountId()
+
+        val response = deposit(accountId, THOUSAND).right()
+        assertEquals(DEPOSIT, response.operation)
+
+        assertEquals(accountId, response.details.accountId)
+        assertEquals(THOUSAND, response.details.amount)
+        assertEquals(THOUSAND, response.details.available)
+
+        val info = getAccountInfo(accountId).right()
+        assertEquals(THOUSAND, info.details.available)
+    }
+
+    @Test
+    fun `Test negative amount cannot be deposited to account`() {
+        val accountId = createAccount(UserFixture.johnDoe, ZERO).accountId()
+
+        val response = deposit(accountId, -THOUSAND).left()
+        assertEquals(INVALID_AMOUNT, AccountCode.valueOf(response.code))
+
+        val info = getAccountInfo(accountId).right()
+        assertEquals(ZERO, info.details.available)
+    }
+
+    @Test
+    fun `Test zero amount cannot be deposited to account`() {
+        val accountId = createAccount(UserFixture.johnDoe, ZERO).accountId()
+
+        val response = deposit(accountId, ZERO).left()
+        assertEquals(INVALID_AMOUNT, AccountCode.valueOf(response.code))
+
+        val info = getAccountInfo(accountId).right()
+        assertEquals(ZERO, info.details.available)
+    }
+
+    @Test
+    fun `Test money cannot be deposited to not existing account`() {
+        val response = deposit(-1, THOUSAND).left()
+        assertEquals(ACCOUNT_NOT_FOUND, AccountCode.valueOf(response.code))
+    }
+
+}

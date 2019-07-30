@@ -1,9 +1,8 @@
 package com.github.grambbledook.example.spark.handler
 
 import com.github.grambbledook.example.spark.dto.error.AccountCode
-import com.github.grambbledook.example.spark.dto.error.AccountCode.ACCOUNT_NOT_FOUND
-import com.github.grambbledook.example.spark.dto.response.TransactionType.ACCOUNT_INFO
-import com.github.grambbledook.example.spark.ext.accountId
+import com.github.grambbledook.example.spark.dto.error.AccountCode.INVALID_AMOUNT
+import com.github.grambbledook.example.spark.dto.response.TransactionType
 import com.github.grambbledook.example.spark.ext.left
 import com.github.grambbledook.example.spark.ext.right
 import com.github.grambbledook.example.spark.fixture.AmountFixture
@@ -17,22 +16,21 @@ import org.junit.jupiter.api.Test
 
 
 @Tag("INTEGRATION")
-class GetAccountInfoHandlerTest : UserFixture, AmountFixture, RestFixture {
+class CreateAccountHandlerTest : UserFixture, AmountFixture, RestFixture {
 
     @Test
     fun `Test account is successfully created for valid input parameters`() {
-        val accountId = createAccount(johnDoe, THOUSAND).accountId()
+        val response = createAccount(johnDoe, THOUSAND).right()
 
-        val response = getAccountInfo(accountId).right()
-        assertEquals(ACCOUNT_INFO, response.operation)
-        assertEquals(johnDoe, response.details.owner)
+        assertEquals(TransactionType.ACCOUNT_CREATED, response.operation)
         assertEquals(THOUSAND, response.details.available)
     }
 
     @Test
-    fun `Test an error response returned if account does not exist`() {
-        val response = getAccountInfo(-1).left()
-        assertEquals(ACCOUNT_NOT_FOUND, AccountCode.valueOf(response.code))
+    fun `Test account with negative available amount cannot be created`() {
+        val error = createAccount(johnDoe, -THOUSAND).left()
+
+        assertEquals(INVALID_AMOUNT, AccountCode.valueOf(error.code))
     }
 
 }

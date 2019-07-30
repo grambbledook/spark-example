@@ -1,14 +1,12 @@
 package com.github.grambbledook.example.spark.service
 
-import arrow.core.Either
-import arrow.core.Left
-import arrow.core.None
-import arrow.core.Right
-import arrow.core.Some
-import com.github.grambbledook.example.spark.dto.domain.Account
+
+import arrow.core.*
+import arrow.core.extensions.either.monad.binding
 import com.github.grambbledook.example.spark.dto.ServiceError
-import com.github.grambbledook.example.spark.dto.error.AccountCode.INSUFFICIENT_FUNDS
+import com.github.grambbledook.example.spark.dto.domain.Account
 import com.github.grambbledook.example.spark.dto.error.AccountCode.ACCOUNT_NOT_FOUND
+import com.github.grambbledook.example.spark.dto.error.AccountCode.INSUFFICIENT_FUNDS
 import com.github.grambbledook.example.spark.handler.traits.Logging
 import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
@@ -44,11 +42,13 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
     override fun transfer(from: Long, to: Long, amount: BigDecimal): Either<ServiceError, Account> {
         return lock.lockWrite(minOf(from, to)) {
             lock.lockWrite(maxOf(from, to)) {
-                val result = withdraw(from, amount)
+                binding {
+                    val (acc1) = getInfo(from)
+                    val (acc2) = getInfo(to)
 
-                when (result) {
-                    is Either.Right -> deposit(to, amount)
-                    else -> result
+                    val (result) = withdraw0(acc1, amount)
+                    val (_) = deposit0(acc2, amount)
+                    result
                 }
             }
         }

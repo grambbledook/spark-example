@@ -5,20 +5,37 @@ import com.github.grambbledook.example.spark.start
 import com.jayway.restassured.RestAssured
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import spark.Spark
+import spark.Service
+import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 interface SparkFixture {
 
+
     companion object {
+
+        private val started = AtomicBoolean(false)
+        private val rnd = Random()
+        private lateinit var service: Service
+
         @BeforeAll
+        @JvmStatic
         fun startSpark() {
-            start(AppConfig(port = 10000, storage = null))
-            RestAssured.port = 10000
+            if (!started.get()) {
+                val port = 10000 + rnd.nextInt(55535)
+                RestAssured.port = port
+                service = start(AppConfig(port = port, data = null))
+
+                started.set(true)
+            }
         }
 
         @AfterAll
+        @JvmStatic
         fun stop() {
-            Spark.stop()
+            service.stop()
+
+            started.set(false)
         }
     }
 

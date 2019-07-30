@@ -3,6 +3,7 @@ package com.github.grambbledook.example.spark.fixture
 import arrow.core.Either
 import arrow.core.Left
 import arrow.core.Right
+import com.fasterxml.jackson.core.type.TypeReference
 import com.github.grambbledook.example.spark.dto.request.AccountDepositRequest
 import com.github.grambbledook.example.spark.dto.request.AccountTransferRequest
 import com.github.grambbledook.example.spark.dto.request.AccountWithdrawRequest
@@ -54,14 +55,16 @@ interface RestFixture : SparkFixture, JacksonFixture {
         val response = RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(AccountTransferRequest(from, to, amount).toJsonString())
-                .post("/accounts/withdraw")
+                .post("/accounts/transfer")
 
         return parseResponse(response)
     }
 
     private inline fun <reified T : Any> parseResponse(response: Response): Either<ErrorResponse, T> {
+        val typeRef = object: TypeReference<T>(){}
+
         return when (response.statusCode()) {
-            200 -> Right(fromJsonString(response.body().asString(), T::class.java))
+            200 -> Right(fromJsonString(response.body().asString(), typeRef))
             else -> Left(fromJsonString(response.body().asString(), ErrorResponse::class.java))
         }
     }

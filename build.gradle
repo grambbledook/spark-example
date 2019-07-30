@@ -3,11 +3,25 @@ plugins {
 }
 
 group 'com.github.grambbledook.example'
-version '1.0-SNAPSHOT'
+version '2.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    jcenter()
+    maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
 }
+
+ext {
+    kotlinVersion = '1.3.31'
+    arrowVersion = '0.9.0'
+    logbackVersion = '1.2.2'
+    junit5Version = '5.4.1'
+    mockkVersion = '1.9.3'
+    restAssuredVersion = '2.9.0'
+    jacksonVersion = '2.9.6'
+    sparkVersion = '2.7.2'
+}
+
 jar {
     manifest {
         attributes 'Main-Class': 'com.github.grambbledook.example.spark.MainKt'
@@ -15,26 +29,32 @@ jar {
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:$jacksonVersion"
+
+    compile "com.sparkjava:spark-core:$sparkVersion"
+
+    compile "io.arrow-kt:arrow-core-data:$arrowVersion"
+    compile "io.arrow-kt:arrow-core-extensions:$arrowVersion"
+
+    compile "ch.qos.logback:logback-classic:$logbackVersion"
+
+    testCompile "org.junit.jupiter:junit-jupiter-api:$junit5Version"
+    testCompile "org.junit.jupiter:junit-jupiter-engine:$junit5Version"
+    testCompile "org.junit.jupiter:junit-jupiter-params:$junit5Version"
+
+    testCompile "io.mockk:mockk:$mockkVersion"
+    testCompile "com.jayway.restassured:rest-assured:$restAssuredVersion"
 
 }
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.9.6"
-    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.6"
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.9.6"
 
-    compile "com.sparkjava:spark-core:2.7.2"
-
-    compile "io.arrow-kt:arrow-core:0.8.2"
-    compile "ch.qos.logback:logback-classic:1.2.2"
-
-    testCompile "org.junit.jupiter:junit-jupiter-api:5.4.1"
-    testCompile "org.junit.jupiter:junit-jupiter-engine:5.4.1"
-    testCompile "org.junit.jupiter:junit-jupiter-params:5.4.1"
-    
-    testCompile "io.mockk:mockk:1.8.7"
-    testCompile "com.jayway.restassured:rest-assured:2.9.0"
-
+test {
+    useJUnitPlatform()
 }
 
 compileKotlin {

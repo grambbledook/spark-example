@@ -9,7 +9,7 @@ import com.github.grambbledook.example.spark.handler.*
 import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import com.github.grambbledook.example.spark.service.InMemoryAccountServiceImpl
-import spark.Spark.*
+import spark.Service
 import java.io.File
 import java.net.URI
 import java.util.concurrent.atomic.AtomicLong
@@ -23,27 +23,33 @@ fun main(args: Array<String>) {
             AppConfig::class.java
     )
 
-    start(config)
+
+    val service = start(config)
+    Runtime.getRuntime().addShutdownHook(Thread { service.stop() })
 }
 
-fun start(config: AppConfig) {
+fun start(config: AppConfig): Service {
     val service = initAccountService(config)
     val transformer = JsonTransformer(mapper)
 
-    startSparkInstance(config, service, transformer, mapper)
+    return startSparkInstance(config, service, transformer, mapper)
 }
 
-private fun startSparkInstance(config: AppConfig, service: InMemoryAccountServiceImpl, transformer: JsonTransformer, mapper: ObjectMapper) {
-    port(config.port!!)
-    get("/accounts/:id", GetAccountInfoHandler(service), transformer)
-    post("/accounts", CreateAccountHandler(service, mapper), transformer)
-    post("/accounts/deposit", AccountDepositHandler(service, mapper), transformer)
-    post("/accounts/withdraw", AccountWithdrawHandler(service, mapper), transformer)
-    post("/accounts/transfer", AccountTransferHandler(service, mapper), transformer)
+private fun startSparkInstance(config: AppConfig, service: InMemoryAccountServiceImpl, transformer: JsonTransformer, mapper: ObjectMapper): Service {
+    return Service.ignite().apply {
+        port(config.port)
+
+        get("/accounts/:id", GetAccountInfoHandler(service), transformer)
+        post("/accounts", CreateAccountHandler(service, mapper), transformer)
+        post("/accounts/deposit", AccountDepositHandler(service, mapper), transformer)
+        post("/accounts/withdraw", AccountWithdrawHandler(service, mapper), transformer)
+        post("/accounts/transfer", AccountTransferHandler(service, mapper), transformer)
+    }
+
 }
 
 fun initAccountService(config: AppConfig): InMemoryAccountServiceImpl {
-    val initialData = if (config.storage != null) loadData(config.storage) else mapOf()
+    val initialData = if (config.data != null) loadData(config.data) else mapOf()
     val idGenerator = AtomicLong(initialData.keys.max() ?: 0)
 
     return InMemoryAccountServiceImpl(
@@ -66,4 +72,4 @@ fun loadData(path: String): Map<Long, Account> {
             .asSequence().associate { it.id to it }
 }
 
-data class AppConfig(val port: Int? = 8080, val storage: String? = "/data.csv")
+data class AppConfig(val port: Int = 8080, val data: String? = "/data.csv")
