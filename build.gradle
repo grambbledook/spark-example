@@ -17,9 +17,9 @@ ext {
     logbackVersion = '1.2.2'
     junit5Version = '5.4.1'
     mockkVersion = '1.9.3'
-    restAssuredVersion = '2.9.0'
     jacksonVersion = '2.9.6'
-    sparkVersion = '2.7.2'
+    sparkVersion = '2.8.0'
+    restAssuredVersion = '4.0.0'
 }
 
 jar {
@@ -49,8 +49,7 @@ dependencies {
     testCompile "org.junit.jupiter:junit-jupiter-params:$junit5Version"
 
     testCompile "io.mockk:mockk:$mockkVersion"
-    testCompile "com.jayway.restassured:rest-assured:$restAssuredVersion"
-
+    testCompile "io.rest-assured:rest-assured:$restAssuredVersion"
 }
 
 test {

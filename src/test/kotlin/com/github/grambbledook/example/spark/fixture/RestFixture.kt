@@ -9,15 +9,16 @@ import com.github.grambbledook.example.spark.dto.request.TransferRequest
 import com.github.grambbledook.example.spark.dto.request.WithdrawRequest
 import com.github.grambbledook.example.spark.dto.request.CreateRequest
 import com.github.grambbledook.example.spark.dto.response.*
-import com.jayway.restassured.RestAssured
-import com.jayway.restassured.http.ContentType
-import com.jayway.restassured.response.Response
 import java.math.BigDecimal
+
+import io.restassured.RestAssured.*
+import io.restassured.http.ContentType
+import io.restassured.response.Response
 
 interface RestFixture : SparkFixture, JacksonFixture {
 
     fun createAccount(owner: String, amount: BigDecimal = BigDecimal.ZERO): Either<ErrorResponse, Receipt> {
-        val response = RestAssured.given()
+        val response = given()
                 .contentType(ContentType.JSON)
                 .body(CreateRequest(amount, owner).toJsonString())
                 .post("/accounts")
@@ -26,7 +27,7 @@ interface RestFixture : SparkFixture, JacksonFixture {
     }
 
     fun getAccountInfo(id: Long): Either<ErrorResponse, Receipt> {
-        val response = RestAssured.given()
+        val response = given()
                 .contentType(ContentType.JSON)
                 .get("/accounts/$id")
 
@@ -34,7 +35,7 @@ interface RestFixture : SparkFixture, JacksonFixture {
     }
 
     fun deposit(id: Long, amount: BigDecimal): Either<ErrorResponse, Receipt> {
-        val response = RestAssured.given()
+        val response = given()
                 .contentType(ContentType.JSON)
                 .body(DepositRequest(id, amount).toJsonString())
                 .post("/accounts/deposit")
@@ -43,7 +44,7 @@ interface RestFixture : SparkFixture, JacksonFixture {
     }
 
     fun withdraw(id: Long, amount: BigDecimal): Either<ErrorResponse, Receipt> {
-        val response = RestAssured.given()
+        val response = given()
                 .contentType(ContentType.JSON)
                 .body(WithdrawRequest(id, amount).toJsonString())
                 .post("/accounts/withdraw")
@@ -52,7 +53,7 @@ interface RestFixture : SparkFixture, JacksonFixture {
     }
 
     fun transfer(from: Long, to: Long, amount: BigDecimal): Either<ErrorResponse, Receipt> {
-        val response = RestAssured.given()
+        val response = given()
                 .contentType(ContentType.JSON)
                 .body(TransferRequest(from, to, amount).toJsonString())
                 .post("/accounts/transfer")
