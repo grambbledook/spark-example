@@ -1,55 +1,68 @@
 package com.github.grambbledook.example.spark
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.csv.CsvMapper
-import com.fasterxml.jackson.dataformat.csv.CsvSchema
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.grambbledook.example.spark.dto.domain.Account
-import com.github.grambbledook.example.spark.handler.*
+import com.github.grambbledook.example.spark.dto.request.*
 import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
+import com.github.grambbledook.example.spark.service.AccountService
 import com.github.grambbledook.example.spark.service.InMemoryAccountServiceImpl
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import spark.Service
-import java.io.File
-import java.net.URI
+import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicLong
 
-val mapper = ObjectMapper().apply { registerModule(KotlinModule()) }
+val logger: Logger = LoggerFactory.getLogger("Main")
 
 fun main(args: Array<String>) {
+    val service = start(8080)
 
-    val config = mapper.convertValue<AppConfig>(
-            args.map { it.split("=") }.map { it[0] to it[1] }.toMap(),
-            AppConfig::class.java
+    Runtime.getRuntime().addShutdownHook(
+            Thread { service.stop() }
     )
-
-
-    val service = start(config)
-    Runtime.getRuntime().addShutdownHook(Thread { service.stop() })
 }
 
-fun start(config: AppConfig): Service {
-    val service = initAccountService(config)
-    val transformer = JsonTransformer(mapper)
+fun start(port: Int): Service {
+    val service = initAccountService()
 
-    return startSparkInstance(config, service, transformer, mapper)
+    return startSparkInstance(port, service)
 }
 
-private fun startSparkInstance(config: AppConfig, service: InMemoryAccountServiceImpl, transformer: JsonTransformer, mapper: ObjectMapper): Service {
+private fun startSparkInstance(port: Int, service: AccountService): Service {
     return Service.ignite().apply {
-        port(config.port)
+        port(port)
+        path("/accounts") {
+            before("/*") { req, _ ->
+                logger.info("Received ${req.uri()} call with params: [${req.params()}], body [${req.body()}}")
+            }
 
-        get("/accounts/:id", GetAccountInfoHandler(service), transformer)
-        post("/accounts", CreateAccountHandler(service, mapper), transformer)
-        post("/accounts/deposit", AccountDepositHandler(service, mapper), transformer)
-        post("/accounts/withdraw", AccountWithdrawHandler(service, mapper), transformer)
-        post("/accounts/transfer", AccountTransferHandler(service, mapper), transformer)
+            get("/:id") { req, res ->
+                val getAccount = GetAccountRequest(req.params("id").toLong())
+                getAccount.process(res) { service.getInfo(it.id) }
+            }
+
+            post("") { req, res ->
+                req.json<CreateRequest>().process(res) { service.create(it.amount, it.owner) }
+            }
+
+            post("/deposit") { req, res ->
+                req.json<DepositRequest>().process(res) { service.deposit(it.id, it.amount) }
+            }
+
+            post("/withdraw") { req, res ->
+                req.json<WithdrawRequest>().process(res) { service.withdraw(it.id, it.amount) }
+            }
+
+            post("/transfer") { req, res ->
+                req.json<TransferRequest>().process(res) { service.transfer(it.from, it.to, it.amount) }
+            }
+        }
     }
 
 }
 
-fun initAccountService(config: AppConfig): InMemoryAccountServiceImpl {
-    val initialData = if (config.data != null) loadData(config.data) else mapOf()
+fun initAccountService(): InMemoryAccountServiceImpl {
+    val initialData = loadInitialData()
     val idGenerator = AtomicLong(initialData.keys.max() ?: 0)
 
     return InMemoryAccountServiceImpl(
@@ -59,17 +72,14 @@ fun initAccountService(config: AppConfig): InMemoryAccountServiceImpl {
     )
 }
 
-fun loadData(path: String): Map<Long, Account> {
-    val schema = CsvSchema.builder().setUseHeader(true).build()
-    val mapper = CsvMapper().apply { registerModule(KotlinModule()) }
-    val resource = when {
-        path.startsWith("file:/") -> File(URI.create(path)).inputStream()
-        else -> String::class.java.getResource(path).openStream()
-    }
-    return mapper.readerFor(Account::class.java)
-            .with(schema)
-            .readValues<Account>(resource)
-            .asSequence().associate { it.id to it }
+fun loadInitialData(): Map<Long, Account> {
+    return mapOf(
+            1L to Account(1, BigDecimal(500), "John Doe"),
+            10L to Account(10, BigDecimal(500), "John Doe"),
+            2L to Account(2, BigDecimal(0), "Jane Doe"),
+            20L to Account(20, BigDecimal(1000), "Jane Doe"),
+            3L to Account(3, BigDecimal(0), "John Johnson"),
+            4L to Account(4, BigDecimal(0), "John Johnson")
+    )
 }
 
-data class AppConfig(val port: Int = 8080, val data: String? = "/data.csv")

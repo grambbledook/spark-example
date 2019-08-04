@@ -37,50 +37,50 @@ class InMemoryAccountServiceImplTest: AmountFixture, UserFixture {
     @Test
     fun testGetAccountInfoSucceeded() {
         val account = service.getInfo(first.id)
-        Assertions.assertEquals(HUNDRED, account.right().amount)
+        Assertions.assertEquals(HUNDRED, account.right().balance)
     }
 
     @Test
     fun testGetNotExistingAccountInfoResultsInError() {
         val account = service.getInfo(Long.MIN_VALUE)
-        Assertions.assertEquals(ACCOUNT_NOT_FOUND, (account.left() as AccountServiceError).error)
+        Assertions.assertEquals(ACCOUNT_NOT_FOUND, (account.left() as AccountServiceError).code)
     }
 
     @Test
     fun testAccountDepositSucceeded() {
         val before = service.getInfo(second.id)
-        Assertions.assertEquals(ZERO, before.right().amount)
+        Assertions.assertEquals(ZERO, before.right().balance)
 
         val result = service.deposit(second.id, HUNDRED)
-        Assertions.assertEquals(HUNDRED, result.right().amount)
+        Assertions.assertEquals(HUNDRED, result.right().balance)
 
         val after = service.getInfo(second.id)
-        Assertions.assertEquals(HUNDRED, after.right().amount)
+        Assertions.assertEquals(HUNDRED, after.right().balance)
     }
 
     @Test
     fun testWithdrawSucceeded() {
         val before = service.getInfo(first.id)
-        Assertions.assertEquals(HUNDRED, before.right().amount)
+        Assertions.assertEquals(HUNDRED, before.right().balance)
 
         val result = service.withdraw(first.id, HUNDRED)
-        Assertions.assertEquals(ZERO, result.right().amount)
+        Assertions.assertEquals(ZERO, result.right().balance)
 
         val after = service.getInfo(first.id)
-        Assertions.assertEquals(ZERO, after.right().amount)
+        Assertions.assertEquals(ZERO, after.right().balance)
     }
 
 
     @Test
     fun testWithdrawFailsOnNoMoney() {
         val before = service.getInfo(first.id)
-        Assertions.assertEquals(HUNDRED, before.right().amount)
+        Assertions.assertEquals(HUNDRED, before.right().balance)
 
         val result = service.withdraw(first.id, THOUSAND)
-        Assertions.assertEquals(INSUFFICIENT_FUNDS, (result.left() as AccountServiceError).error)
+        Assertions.assertEquals(INSUFFICIENT_FUNDS, (result.left() as AccountServiceError).code)
 
         val after = service.getInfo(first.id)
-        Assertions.assertEquals(HUNDRED, after.right().amount)
+        Assertions.assertEquals(HUNDRED, after.right().balance)
     }
 
 
@@ -88,37 +88,37 @@ class InMemoryAccountServiceImplTest: AmountFixture, UserFixture {
     @Test
     fun testTransferSuccessful() {
         val firstBefore = service.getInfo(first.id)
-        Assertions.assertEquals(HUNDRED, firstBefore.right().amount)
+        Assertions.assertEquals(HUNDRED, firstBefore.right().balance)
 
         val secondBefore = service.getInfo(second.id)
-        Assertions.assertEquals(ZERO, secondBefore.right().amount)
+        Assertions.assertEquals(ZERO, secondBefore.right().balance)
 
         val result = service.transfer(first.id, second.id, SIXTY)
-        Assertions.assertEquals(FORTY, result.right().amount)
+        Assertions.assertEquals(FORTY, result.right().balance)
 
         val firstAfter = service.getInfo(first.id)
-        Assertions.assertEquals(FORTY, firstAfter.right().amount)
+        Assertions.assertEquals(FORTY, firstAfter.right().balance)
 
         val secondAfter = service.getInfo(second.id)
-        Assertions.assertEquals(SIXTY, secondAfter.right().amount)
+        Assertions.assertEquals(SIXTY, secondAfter.right().balance)
     }
 
     @Test
     fun testTransferFailsOnNoMoney() {
         val firstBefore = service.getInfo(first.id)
-        Assertions.assertEquals(HUNDRED, firstBefore.right().amount)
+        Assertions.assertEquals(HUNDRED, firstBefore.right().balance)
 
         val secondBefore = service.getInfo(second.id)
-        Assertions.assertEquals(ZERO, secondBefore.right().amount)
+        Assertions.assertEquals(ZERO, secondBefore.right().balance)
 
         val result = service.transfer(first.id, second.id, THOUSAND)
-        Assertions.assertEquals(INSUFFICIENT_FUNDS, (result.left() as AccountServiceError).error)
+        Assertions.assertEquals(INSUFFICIENT_FUNDS, (result.left() as AccountServiceError).code)
 
         val firstAfter = service.getInfo(first.id)
-        Assertions.assertEquals(HUNDRED, firstAfter.right().amount)
+        Assertions.assertEquals(HUNDRED, firstAfter.right().balance)
 
         val secondAfter = service.getInfo(second.id)
-        Assertions.assertEquals(ZERO, secondAfter.right().amount)
+        Assertions.assertEquals(ZERO, secondAfter.right().balance)
     }
 
 }

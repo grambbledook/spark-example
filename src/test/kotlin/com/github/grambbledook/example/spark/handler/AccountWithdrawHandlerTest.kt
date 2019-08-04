@@ -3,9 +3,7 @@ package com.github.grambbledook.example.spark.handler
 import com.github.grambbledook.example.spark.dto.error.AccountCode
 import com.github.grambbledook.example.spark.dto.error.AccountCode.*
 import com.github.grambbledook.example.spark.dto.response.TransactionType.WITHDRAWAL
-import com.github.grambbledook.example.spark.ext.accountId
-import com.github.grambbledook.example.spark.ext.left
-import com.github.grambbledook.example.spark.ext.right
+import com.github.grambbledook.example.spark.ext.*
 import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.ONE
 import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.THOUSAND
 import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.ZERO
@@ -23,15 +21,15 @@ class AccountWithdrawHandlerTest : UserFixture, RestFixture {
     fun `Test available money amount is successfully withdrawn from account`() {
         val accountId = createAccount(UserFixture.johnDoe, THOUSAND).accountId()
 
-        val response = withdraw(accountId, THOUSAND).right()
-        assertEquals(WITHDRAWAL, response.operation)
+        val response = withdraw(accountId, THOUSAND)
+        assertEquals(WITHDRAWAL, response.operation())
 
-        assertEquals(accountId, response.details.accountId)
-        assertEquals(THOUSAND, response.details.amount)
-        assertEquals(ZERO, response.details.available)
+        assertEquals(accountId, response.accountId())
+        assertEquals(THOUSAND, response.transactionAmount())
+        assertEquals(ZERO, response.balance())
 
-        val info = getAccountInfo(accountId).right()
-        assertEquals(ZERO, info.details.available)
+        val info = getAccountInfo(accountId)
+        assertEquals(ZERO, info.balance())
     }
 
     @Test
@@ -41,8 +39,8 @@ class AccountWithdrawHandlerTest : UserFixture, RestFixture {
         val response = withdraw(accountId, -THOUSAND).left()
         assertEquals(INVALID_AMOUNT, AccountCode.valueOf(response.code))
 
-        val info = getAccountInfo(accountId).right()
-        assertEquals(THOUSAND, info.details.available)
+        val info = getAccountInfo(accountId)
+        assertEquals(THOUSAND, info.balance())
     }
 
     @Test
@@ -52,8 +50,8 @@ class AccountWithdrawHandlerTest : UserFixture, RestFixture {
         val response = withdraw(accountId, THOUSAND).left()
         assertEquals(INSUFFICIENT_FUNDS, AccountCode.valueOf(response.code))
 
-        val info = getAccountInfo(accountId).right()
-        assertEquals(ONE, info.details.available)
+        val info = getAccountInfo(accountId)
+        assertEquals(ONE, info.balance())
     }
 
 

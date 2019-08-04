@@ -2,7 +2,7 @@ package com.github.grambbledook.example.spark.fixture
 
 interface UserFixture {
     companion object {
-        val johnDoe = "John Doe"
-        val janeDoe = "Jane Doe"
+        const val johnDoe = "John Doe"
+        const val janeDoe = "Jane Doe"
     }
 }

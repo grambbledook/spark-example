@@ -2,10 +2,11 @@ package com.github.grambbledook.example.spark.handler
 
 import com.github.grambbledook.example.spark.dto.error.AccountCode
 import com.github.grambbledook.example.spark.dto.error.AccountCode.ACCOUNT_NOT_FOUND
-import com.github.grambbledook.example.spark.dto.response.TransactionType.ACCOUNT_INFO
+import com.github.grambbledook.example.spark.dto.response.TransactionType.INFO
 import com.github.grambbledook.example.spark.ext.accountId
+import com.github.grambbledook.example.spark.ext.balance
 import com.github.grambbledook.example.spark.ext.left
-import com.github.grambbledook.example.spark.ext.right
+import com.github.grambbledook.example.spark.ext.operation
 import com.github.grambbledook.example.spark.fixture.AmountFixture
 import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.THOUSAND
 import com.github.grambbledook.example.spark.fixture.RestFixture
@@ -23,10 +24,9 @@ class GetAccountInfoHandlerTest : UserFixture, AmountFixture, RestFixture {
     fun `Test account is successfully created for valid input parameters`() {
         val accountId = createAccount(johnDoe, THOUSAND).accountId()
 
-        val response = getAccountInfo(accountId).right()
-        assertEquals(ACCOUNT_INFO, response.operation)
-        assertEquals(johnDoe, response.details.owner)
-        assertEquals(THOUSAND, response.details.available)
+        val response = getAccountInfo(accountId)
+        assertEquals(INFO, response.operation())
+        assertEquals(THOUSAND, response.balance())
     }
 
     @Test

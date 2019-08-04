@@ -1,6 +1,5 @@
 package com.github.grambbledook.example.spark.fixture
 
-import com.github.grambbledook.example.spark.AppConfig
 import com.github.grambbledook.example.spark.start
 import com.jayway.restassured.RestAssured
 import org.junit.jupiter.api.AfterAll
@@ -24,7 +23,7 @@ interface SparkFixture {
             if (!started.get()) {
                 val port = 10000 + rnd.nextInt(55535)
                 RestAssured.port = port
-                service = start(AppConfig(port = port, data = null))
+                service = start(port)
 
                 started.set(true)
             }

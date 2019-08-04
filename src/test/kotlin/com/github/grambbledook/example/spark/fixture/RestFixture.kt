@@ -4,10 +4,10 @@ import arrow.core.Either
 import arrow.core.Left
 import arrow.core.Right
 import com.fasterxml.jackson.core.type.TypeReference
-import com.github.grambbledook.example.spark.dto.request.AccountDepositRequest
-import com.github.grambbledook.example.spark.dto.request.AccountTransferRequest
-import com.github.grambbledook.example.spark.dto.request.AccountWithdrawRequest
-import com.github.grambbledook.example.spark.dto.request.CreateAccountRequest
+import com.github.grambbledook.example.spark.dto.request.DepositRequest
+import com.github.grambbledook.example.spark.dto.request.TransferRequest
+import com.github.grambbledook.example.spark.dto.request.WithdrawRequest
+import com.github.grambbledook.example.spark.dto.request.CreateRequest
 import com.github.grambbledook.example.spark.dto.response.*
 import com.jayway.restassured.RestAssured
 import com.jayway.restassured.http.ContentType
@@ -16,16 +16,16 @@ import java.math.BigDecimal
 
 interface RestFixture : SparkFixture, JacksonFixture {
 
-    fun createAccount(owner: String, amount: BigDecimal = BigDecimal.ZERO): Either<ErrorResponse, Receipt<AccountCreatedDetails>> {
+    fun createAccount(owner: String, amount: BigDecimal = BigDecimal.ZERO): Either<ErrorResponse, Receipt> {
         val response = RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(CreateAccountRequest(amount, owner).toJsonString())
+                .body(CreateRequest(amount, owner).toJsonString())
                 .post("/accounts")
 
         return parseResponse(response)
     }
 
-    fun getAccountInfo(id: Long): Either<ErrorResponse, Receipt<AccountDetails>> {
+    fun getAccountInfo(id: Long): Either<ErrorResponse, Receipt> {
         val response = RestAssured.given()
                 .contentType(ContentType.JSON)
                 .get("/accounts/$id")
@@ -33,28 +33,28 @@ interface RestFixture : SparkFixture, JacksonFixture {
         return parseResponse(response)
     }
 
-    fun deposit(id: Long, amount: BigDecimal): Either<ErrorResponse, Receipt<AccountDepositDetails>> {
+    fun deposit(id: Long, amount: BigDecimal): Either<ErrorResponse, Receipt> {
         val response = RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(AccountDepositRequest(id, amount).toJsonString())
+                .body(DepositRequest(id, amount).toJsonString())
                 .post("/accounts/deposit")
 
         return parseResponse(response)
     }
 
-    fun withdraw(id: Long, amount: BigDecimal): Either<ErrorResponse, Receipt<AccountWithdrawDetails>> {
+    fun withdraw(id: Long, amount: BigDecimal): Either<ErrorResponse, Receipt> {
         val response = RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(AccountWithdrawRequest(id, amount).toJsonString())
+                .body(WithdrawRequest(id, amount).toJsonString())
                 .post("/accounts/withdraw")
 
         return parseResponse(response)
     }
 
-    fun transfer(from: Long, to: Long, amount: BigDecimal): Either<ErrorResponse, Receipt<AccountTransferDetails>> {
+    fun transfer(from: Long, to: Long, amount: BigDecimal): Either<ErrorResponse, Receipt> {
         val response = RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(AccountTransferRequest(from, to, amount).toJsonString())
+                .body(TransferRequest(from, to, amount).toJsonString())
                 .post("/accounts/transfer")
 
         return parseResponse(response)

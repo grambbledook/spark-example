@@ -3,8 +3,9 @@ package com.github.grambbledook.example.spark.handler
 import com.github.grambbledook.example.spark.dto.error.AccountCode
 import com.github.grambbledook.example.spark.dto.error.AccountCode.INVALID_AMOUNT
 import com.github.grambbledook.example.spark.dto.response.TransactionType
+import com.github.grambbledook.example.spark.ext.balance
 import com.github.grambbledook.example.spark.ext.left
-import com.github.grambbledook.example.spark.ext.right
+import com.github.grambbledook.example.spark.ext.operation
 import com.github.grambbledook.example.spark.fixture.AmountFixture
 import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.THOUSAND
 import com.github.grambbledook.example.spark.fixture.RestFixture
@@ -20,10 +21,10 @@ class CreateAccountHandlerTest : UserFixture, AmountFixture, RestFixture {
 
     @Test
     fun `Test account is successfully created for valid input parameters`() {
-        val response = createAccount(johnDoe, THOUSAND).right()
+        val response = createAccount(johnDoe, THOUSAND)
 
-        assertEquals(TransactionType.ACCOUNT_CREATED, response.operation)
-        assertEquals(THOUSAND, response.details.available)
+        assertEquals(TransactionType.CREATED, response.operation())
+        assertEquals(THOUSAND, response.balance())
     }
 
     @Test

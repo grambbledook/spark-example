@@ -7,18 +7,14 @@ import com.github.grambbledook.example.spark.dto.ServiceError
 import com.github.grambbledook.example.spark.dto.domain.Account
 import com.github.grambbledook.example.spark.dto.error.AccountCode.ACCOUNT_NOT_FOUND
 import com.github.grambbledook.example.spark.dto.error.AccountCode.INSUFFICIENT_FUNDS
-import com.github.grambbledook.example.spark.handler.traits.Logging
 import com.github.grambbledook.example.spark.lock.AccountRWLock
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
-import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicLong
 
 class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
                                  private val accountRepo: InMemoryAccountRepository,
-                                 private val lock: AccountRWLock) : AccountService, Logging {
-
-    override val logger: org.slf4j.Logger = LoggerFactory.getLogger(javaClass::class.java)
+                                 private val lock: AccountRWLock) : AccountService {
 
     override fun create(amount: BigDecimal, owner: String): Either<ServiceError, Account> {
         val id = idGenerator.incrementAndGet()
@@ -66,12 +62,12 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
     }
 
     private fun withdraw0(account: Account, amount: BigDecimal): Either<ServiceError, Account> {
-        val newAmount = account.amount - amount
+        val newAmount = account.balance - amount
 
         return if (newAmount < BigDecimal.ZERO)
             Left(AccountServiceError(INSUFFICIENT_FUNDS, "Unable to complete operation. Not enough funds on account [${account.id}]."))
         else
-            Right(accountRepo.save(account.copy(amount = newAmount)))
+            Right(accountRepo.save(account.copy(balance = newAmount)))
     }
 
     override fun deposit(id: Long, amount: BigDecimal): Either<ServiceError, Account> {
@@ -86,9 +82,9 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
     }
 
     private fun deposit0(account: Account, amount: BigDecimal): Either<ServiceError, Account> {
-        val newAmount = account.amount + amount
+        val newAmount = account.balance + amount
 
-        return Right(accountRepo.save(account.copy(amount = newAmount)))
+        return Right(accountRepo.save(account.copy(balance = newAmount)))
     }
 
 }
