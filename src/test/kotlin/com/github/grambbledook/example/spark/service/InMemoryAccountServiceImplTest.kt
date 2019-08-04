@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicLong
 
-class InMemoryAccountServiceImplTest: AmountFixture, UserFixture {
+class InMemoryAccountServiceImplTest : AmountFixture, UserFixture {
 
     private var service = InMemoryAccountServiceImpl(AtomicLong(0), InMemoryAccountRepository(), AccountRWLock())
 
@@ -43,7 +43,7 @@ class InMemoryAccountServiceImplTest: AmountFixture, UserFixture {
     @Test
     fun testGetNotExistingAccountInfoResultsInError() {
         val account = service.getInfo(Long.MIN_VALUE)
-        Assertions.assertEquals(ACCOUNT_NOT_FOUND, (account.left() as AccountServiceError).code)
+        Assertions.assertEquals(ACCOUNT_NOT_FOUND, account.left().code)
     }
 
     @Test
@@ -77,12 +77,11 @@ class InMemoryAccountServiceImplTest: AmountFixture, UserFixture {
         Assertions.assertEquals(HUNDRED, before.right().balance)
 
         val result = service.withdraw(first.id, THOUSAND)
-        Assertions.assertEquals(INSUFFICIENT_FUNDS, (result.left() as AccountServiceError).code)
+        Assertions.assertEquals(INSUFFICIENT_FUNDS, result.left().code)
 
         val after = service.getInfo(first.id)
         Assertions.assertEquals(HUNDRED, after.right().balance)
     }
-
 
 
     @Test
@@ -112,7 +111,7 @@ class InMemoryAccountServiceImplTest: AmountFixture, UserFixture {
         Assertions.assertEquals(ZERO, secondBefore.right().balance)
 
         val result = service.transfer(first.id, second.id, THOUSAND)
-        Assertions.assertEquals(INSUFFICIENT_FUNDS, (result.left() as AccountServiceError).code)
+        Assertions.assertEquals(INSUFFICIENT_FUNDS, result.left().code)
 
         val firstAfter = service.getInfo(first.id)
         Assertions.assertEquals(HUNDRED, firstAfter.right().balance)

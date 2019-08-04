@@ -8,7 +8,7 @@ import arrow.core.Right
 import arrow.core.flatMap
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.github.grambbledook.example.spark.dto.ServiceError
+import com.github.grambbledook.example.spark.dto.error.ServiceError
 import com.github.grambbledook.example.spark.dto.domain.Account
 import com.github.grambbledook.example.spark.dto.error.AccountCode
 import com.github.grambbledook.example.spark.dto.request.*
@@ -23,46 +23,44 @@ val mapper = ObjectMapper().apply { registerModule(KotlinModule()) }
 inline fun <reified T : AccountRequest> Request.json(): T = mapper.readValue(body(), T::class.java)
 
 fun <T : AccountRequest> T.process(response: Response, apply: (T) -> Either<ServiceError, Account>): String {
-    return notNegative()
-            .flatMap { request ->
-                apply(request).map {
-
-                    val operation = when (request) {
-                        is TransferRequest -> TransactionType.TRANSFER
-                        is CreateRequest -> TransactionType.CREATED
-                        is DepositRequest -> TransactionType.DEPOSIT
-                        is WithdrawRequest -> TransactionType.WITHDRAWAL
-                        else -> TransactionType.INFO
-                    }
-
-                    val amount = when (request) {
-                        is MoneyOperation -> request.amount
-                        else -> null
-                    }
-
-                    Receipt(operation = operation,
-                            accountId = it.id,
-                            amount = amount,
-                            balance = it.balance
-                    )
-                }
-            }
+    return validate()
+            .execute(apply)
             .statusCode(response)
             .body()
 }
 
-
-fun <T : AccountRequest> T.notNegative(): Either<ServiceError, T> {
-    val validated = if (this is MoneyOperation && amount < BigDecimal.ZERO) {
-        val error = object : ServiceError {
-            override val code = AccountCode.INVALID_AMOUNT
-            override val message: String = "Amount should be positive"
-        }
-        Left(error)
-    } else
+fun <T : AccountRequest> T.validate(): Either<ServiceError, T> {
+    return if (this is MoneyOperation && amount < BigDecimal.ZERO)
+        Left(ServiceError(AccountCode.INVALID_AMOUNT, "Amount should be positive"))
+    else
         Right(this)
+}
 
-    return validated
+
+private fun <E, T : AccountRequest> Either<E, T>.execute(apply: (T) -> Either<E, Account>): Either<E, Receipt> {
+    return flatMap { request ->
+        apply(request).map {
+
+            val operation = when (request) {
+                is TransferRequest -> TransactionType.TRANSFER
+                is CreateRequest -> TransactionType.CREATED
+                is DepositRequest -> TransactionType.DEPOSIT
+                is WithdrawRequest -> TransactionType.WITHDRAWAL
+                else -> TransactionType.INFO
+            }
+
+            val amount = when (request) {
+                is MoneyOperation -> request.amount
+                else -> null
+            }
+
+            Receipt(operation = operation,
+                    accountId = it.id,
+                    amount = amount,
+                    balance = it.balance
+            )
+        }
+    }
 }
 
 

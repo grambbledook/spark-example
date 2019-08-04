@@ -3,7 +3,7 @@ package com.github.grambbledook.example.spark.service
 
 import arrow.core.*
 import arrow.core.extensions.either.monad.binding
-import com.github.grambbledook.example.spark.dto.ServiceError
+import com.github.grambbledook.example.spark.dto.error.ServiceError
 import com.github.grambbledook.example.spark.dto.domain.Account
 import com.github.grambbledook.example.spark.dto.error.AccountCode.ACCOUNT_NOT_FOUND
 import com.github.grambbledook.example.spark.dto.error.AccountCode.INSUFFICIENT_FUNDS
@@ -30,7 +30,7 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
 
             when (account) {
                 is Some -> Right(account.t)
-                is None -> Left(AccountServiceError(ACCOUNT_NOT_FOUND, "Account [$id] not found."))
+                is None -> Left(ServiceError(ACCOUNT_NOT_FOUND, "Account [$id] not found."))
             }
         }
     }
@@ -65,7 +65,7 @@ class InMemoryAccountServiceImpl(private val idGenerator: AtomicLong,
         val newAmount = account.balance - amount
 
         return if (newAmount < BigDecimal.ZERO)
-            Left(AccountServiceError(INSUFFICIENT_FUNDS, "Unable to complete operation. Not enough funds on account [${account.id}]."))
+            Left(ServiceError(INSUFFICIENT_FUNDS, "Unable to complete operation. Not enough funds on account [${account.id}]."))
         else
             Right(accountRepo.save(account.copy(balance = newAmount)))
     }
