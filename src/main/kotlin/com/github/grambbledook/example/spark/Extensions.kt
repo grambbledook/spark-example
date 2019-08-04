@@ -22,7 +22,7 @@ val mapper = ObjectMapper().apply { registerModule(KotlinModule()) }
 
 inline fun <reified T : AccountRequest> Request.json(): T = mapper.readValue(body(), T::class.java)
 
-inline fun <reified T : AccountRequest> T.process(response: Response, apply: (T) -> Either<ServiceError, Account>): String {
+fun <T : AccountRequest> T.process(response: Response, apply: (T) -> Either<ServiceError, Account>): String {
     return notNegative()
             .flatMap { request ->
                 apply(request).map {
@@ -36,7 +36,7 @@ inline fun <reified T : AccountRequest> T.process(response: Response, apply: (T)
                     }
 
                     val amount = when (request) {
-                        is WithAmount -> request.amount
+                        is MoneyOperation -> request.amount
                         else -> null
                     }
 
@@ -53,7 +53,7 @@ inline fun <reified T : AccountRequest> T.process(response: Response, apply: (T)
 
 
 fun <T : AccountRequest> T.notNegative(): Either<ServiceError, T> {
-    val validated = if (this is WithAmount && amount < BigDecimal.ZERO) {
+    val validated = if (this is MoneyOperation && amount < BigDecimal.ZERO) {
         val error = object : ServiceError {
             override val code = AccountCode.INVALID_AMOUNT
             override val message: String = "Amount should be positive"
@@ -64,6 +64,7 @@ fun <T : AccountRequest> T.notNegative(): Either<ServiceError, T> {
 
     return validated
 }
+
 
 fun <E, T> Either<E, T>.statusCode(response: Response): Either<E, T> {
     when (this) {

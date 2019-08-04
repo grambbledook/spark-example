@@ -5,7 +5,7 @@ import com.github.grambbledook.example.spark.dto.domain.Account
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
-class InMemoryAccountRepository(initialData: Map<Long, Account> = mapOf()) : AccountRepository {
+open class InMemoryAccountRepository(initialData: Map<Long, Account> = mapOf()) : AccountRepository {
     private val accounts: ConcurrentMap<Long, Account> = ConcurrentHashMap()
 
     init {
