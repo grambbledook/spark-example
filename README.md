@@ -7,7 +7,7 @@ Execute command `gradle clean build`
 Requirements: Latest JDK8 
 
 ### Launch instructions
-To start application executed command `java -jar ${JAR_PATH}
+To start application executed command `java -jar ${JAR_PATH}`
 
 Where 
 - `jar_path` is a path to example jar
