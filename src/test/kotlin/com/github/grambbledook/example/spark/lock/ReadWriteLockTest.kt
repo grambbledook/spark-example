@@ -1,5 +1,7 @@
 package com.github.grambbledook.example.spark.lock
 
+import com.github.grambbledook.example.spark.fixture.HELLO_WORLD
+import com.github.grambbledook.example.spark.fixture.LockFixture
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.*

@@ -1,4 +1,6 @@
-package com.github.grambbledook.example.spark.lock
+package com.github.grambbledook.example.spark.fixture
+
+import com.github.grambbledook.example.spark.lock.AccountRWLock
 
 const val HELLO_WORLD = "Hello World"
 
