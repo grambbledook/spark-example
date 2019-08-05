@@ -15,6 +15,8 @@ class ReadWriteLockTest : LockFixture {
     @Test
     fun `Test Reader is blocked on active Writer`() {
         val latch = CountDownLatch(1)
+        val testExecutionLatch = CountDownLatch(3)
+
         val readerBarrier = CyclicBarrier(2)
         val writerBarrier = CyclicBarrier(2)
 
@@ -27,9 +29,9 @@ class ReadWriteLockTest : LockFixture {
                 println("Read lock acquired by first reader")
                 firstReaderResult.set(buffer.size)
                 readerBarrier.await()
-                timeConsumingPart()
             }
             println("Read lock released by first reader")
+            testExecutionLatch.countDown()
         }
 
         val secondReaderResult = AtomicInteger(-1)
@@ -38,10 +40,10 @@ class ReadWriteLockTest : LockFixture {
 
             locks().lockRead(resourceId()) {
                 println("Read lock acquired by second reader")
-                timeConsumingPart()
                 secondReaderResult.set(buffer.size)
             }
             println("Read lock released by second reader")
+            testExecutionLatch.countDown()
         }
 
         val w1 = Thread {
@@ -52,10 +54,10 @@ class ReadWriteLockTest : LockFixture {
 
                 latch.countDown()
 
-                timeConsumingPart()
                 buffer.add(HELLO_WORLD)
             }
             println("Write lock released")
+            testExecutionLatch.countDown()
         }
 
         r1.start()
@@ -67,9 +69,7 @@ class ReadWriteLockTest : LockFixture {
 
         writerBarrier.await()
 
-        r1.join()
-        r2.join()
-        w1.join()
+        testExecutionLatch.await()
 
         Assertions.assertEquals(1, secondReaderResult.get())
         Assertions.assertEquals(HELLO_WORLD, buffer.peek())

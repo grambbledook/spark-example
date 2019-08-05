@@ -54,6 +54,10 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    
+    if (project.hasProperty('testPort')) {
+        systemProperty "test.port", project.getProperty("testPort")
+    }
 }
 
 compileKotlin {

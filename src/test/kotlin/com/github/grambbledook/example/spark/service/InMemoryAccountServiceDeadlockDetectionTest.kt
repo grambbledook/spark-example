@@ -26,7 +26,7 @@ class InMemoryAccountServiceDeadlockDetectionTest : AmountFixture, UserFixture, 
     private val accountMap = mapOf(first.id to first, second.id to second)
 
     @Test
-    fun `Test deadlock os avoided on concurrent transfer from acc A to acc B and from acc B to acc A`() {
+    fun `Test deadlock avoided on concurrent transfer from acc A to acc B and from acc B to acc A`() {
         val barrier = CyclicBarrier(2)
         val testCompletionLatch = CountDownLatch(2)
 
@@ -60,12 +60,10 @@ class InMemoryAccountServiceDeadlockDetectionTest : AmountFixture, UserFixture, 
 
         val t1 = Thread({
             service.transfer(first.id, second.id, SIXTY)
-            testCompletionLatch.countDown()
         }, FIRST_THREAD)
 
         val t2 = Thread({
             service.transfer(second.id, first.id, SIXTY)
-            testCompletionLatch.countDown()
         }, SECOND_THREAD)
 
         t1.start()

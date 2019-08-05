@@ -2,7 +2,9 @@ ___
 # Example Spark Webapp
 ___
 ### Build instructions
-Execute command `gradle clean build`
+Execute command `gradle clean build -PtestPort=10000`
+
+`testPort` property is optional and is used by integration tests, default value = rnd(10000, 65000) 
 
 Requirements: Latest JDK8 
 
