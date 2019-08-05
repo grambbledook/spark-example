@@ -109,7 +109,7 @@ class InMemoryAccountServiceImplConcurrencyTest : AmountFixture, UserFixture {
         val t1 = Thread {
             startWorkerBarrier.await()
             firstOperation = op1(service)
-            lastWorkerId.set(1)
+            lastWorkerId.set(FIRST_OPERATION)
             testCompletionLatch.countDown()
         }
 
