@@ -14,11 +14,3 @@ Where
 
 Application will be started on port `8080`
 
-### File structure with initial data
-
-CSV file with structure as in table below 
-
-| id     | owner     | amount    |
-|:------:|:---------:|:---------:|
-| 1      | John Doe  | 1000.0    |
-
