@@ -77,15 +77,13 @@ class InMemoryAccountServiceImplConcurrencyTest : AmountFixture, UserFixture, Lo
         Assertions.assertEquals(HUNDRED, secondOperation.right().balance)
     }
 
-    private fun doTest(op1: (AccountService) -> Either<ServiceError, Account>, op2: (AccountService) -> Either<ServiceError, Account>, useOrder: Boolean = true): Result {
+    private fun doTest(op1: (AccountService) -> Either<ServiceError, Account>, op2: (AccountService) -> Either<ServiceError, Account>): Result {
         val latch = CountDownLatch(1)
-        val barier = CyclicBarrier(2)
         val testCompletionLatch = CountDownLatch(2)
 
         val repo = object : InMemoryAccountRepository(accountMap) {
             override fun findById(id: Long): Option<Account> {
-                if (useOrder) latch.countDown()
-                timeConsumingPart()
+                latch.countDown()
                 return super.findById(id)
             }
         }
@@ -94,15 +92,13 @@ class InMemoryAccountServiceImplConcurrencyTest : AmountFixture, UserFixture, Lo
 
         lateinit var firstOperation: Either<ServiceError, Account>
         val t1 = Thread {
-            barier.await()
             firstOperation = op1(service)
             testCompletionLatch.countDown()
         }
 
         lateinit var secondOperation: Either<ServiceError, Account>
         val t2 = Thread {
-            barier.await()
-            if (useOrder) latch.await()
+            latch.await()
             secondOperation = op2(service)
             testCompletionLatch.countDown()
         }

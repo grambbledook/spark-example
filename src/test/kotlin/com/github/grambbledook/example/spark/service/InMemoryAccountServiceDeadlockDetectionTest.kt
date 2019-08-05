@@ -58,7 +58,6 @@ class InMemoryAccountServiceDeadlockDetectionTest : AmountFixture, UserFixture, 
 
         val service = InMemoryAccountServiceImpl(AtomicLong(0), InMemoryAccountRepository(accountMap), lock)
 
-
         val t1 = Thread({
             service.transfer(first.id, second.id, SIXTY)
             testCompletionLatch.countDown()
