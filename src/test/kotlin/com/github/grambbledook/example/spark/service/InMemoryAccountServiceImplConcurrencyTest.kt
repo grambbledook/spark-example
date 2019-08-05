@@ -107,7 +107,8 @@ class InMemoryAccountServiceImplConcurrencyTest : AmountFixture, UserFixture, Lo
         t1.start()
         t2.start()
 
-        Assertions.assertTrue(testCompletionLatch.await(30, TimeUnit.SECONDS))
+        val completedNormally = testCompletionLatch.await(30, TimeUnit.SECONDS)
+        Assertions.assertTrue(completedNormally, "FAILED BY TIMEOUT")
         return Pair(firstOperation, secondOperation)
     }
 
