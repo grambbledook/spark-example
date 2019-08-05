@@ -1,6 +1,6 @@
 package com.github.grambbledook.example.spark.fixture
 
-import com.github.grambbledook.example.spark.lock.AccountRWLock
+import com.github.grambbledook.example.spark.lock.AccountRWLockImpl
 
 const val HELLO_WORLD = "Hello World"
 
@@ -14,7 +14,7 @@ interface LockFixture {
     }
 
     companion object {
-        val rwLock = AccountRWLock()
+        val rwLock = AccountRWLockImpl()
         const val ID: Long = 10
 
     }

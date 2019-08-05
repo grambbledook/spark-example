@@ -14,7 +14,7 @@ import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.ZER
 import com.github.grambbledook.example.spark.fixture.UserFixture
 import com.github.grambbledook.example.spark.fixture.UserFixture.Companion.janeDoe
 import com.github.grambbledook.example.spark.fixture.UserFixture.Companion.johnDoe
-import com.github.grambbledook.example.spark.lock.AccountRWLock
+import com.github.grambbledook.example.spark.lock.AccountRWLockImpl
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class InMemoryAccountServiceImplTest : AmountFixture, UserFixture {
 
-    private var service = InMemoryAccountServiceImpl(AtomicLong(0), InMemoryAccountRepository(), AccountRWLock())
+    private var service = InMemoryAccountServiceImpl(AtomicLong(0), InMemoryAccountRepository(), AccountRWLockImpl())
 
     private lateinit var first: Account
     private lateinit var second: Account

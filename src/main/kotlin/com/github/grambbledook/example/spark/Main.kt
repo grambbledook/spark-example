@@ -2,7 +2,7 @@ package com.github.grambbledook.example.spark
 
 import com.github.grambbledook.example.spark.dto.domain.Account
 import com.github.grambbledook.example.spark.dto.request.*
-import com.github.grambbledook.example.spark.lock.AccountRWLock
+import com.github.grambbledook.example.spark.lock.AccountRWLockImpl
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import com.github.grambbledook.example.spark.service.AccountService
 import com.github.grambbledook.example.spark.service.InMemoryAccountServiceImpl
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 val logger: Logger = LoggerFactory.getLogger("Main")
 
-fun main(args: Array<String>) {
+fun main() {
     val service = start(8080)
 
     Runtime.getRuntime().addShutdownHook(
@@ -68,7 +68,7 @@ fun initAccountService(): InMemoryAccountServiceImpl {
     return InMemoryAccountServiceImpl(
             idGenerator = idGenerator,
             accountRepo = InMemoryAccountRepository(initialData),
-            lock = AccountRWLock()
+            lock = AccountRWLockImpl()
     )
 }
 

@@ -15,11 +15,12 @@ import com.github.grambbledook.example.spark.fixture.AmountFixture.Companion.ZER
 import com.github.grambbledook.example.spark.fixture.LockFixture
 import com.github.grambbledook.example.spark.fixture.UserFixture
 import com.github.grambbledook.example.spark.fixture.UserFixture.Companion.johnDoe
-import com.github.grambbledook.example.spark.lock.AccountRWLock
+import com.github.grambbledook.example.spark.lock.AccountRWLockImpl
 import com.github.grambbledook.example.spark.repository.InMemoryAccountRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
@@ -76,30 +77,32 @@ class InMemoryAccountServiceImplConcurrencyTest : AmountFixture, UserFixture, Lo
         Assertions.assertEquals(HUNDRED, secondOperation.right().balance)
     }
 
-    private fun doTest(op1: (AccountService) -> Either<ServiceError, Account>, op2: (AccountService) -> Either<ServiceError, Account>): Result {
-
+    private fun doTest(op1: (AccountService) -> Either<ServiceError, Account>, op2: (AccountService) -> Either<ServiceError, Account>, useOrder: Boolean = true): Result {
         val latch = CountDownLatch(1)
+        val barier = CyclicBarrier(2)
         val testCompletionLatch = CountDownLatch(2)
 
         val repo = object : InMemoryAccountRepository(accountMap) {
             override fun findById(id: Long): Option<Account> {
-                latch.countDown()
+                if (useOrder) latch.countDown()
                 timeConsumingPart()
                 return super.findById(id)
             }
         }
 
-        val service = InMemoryAccountServiceImpl(AtomicLong(0), repo, AccountRWLock())
+        val service = InMemoryAccountServiceImpl(AtomicLong(0), repo, AccountRWLockImpl())
 
         lateinit var firstOperation: Either<ServiceError, Account>
         val t1 = Thread {
+            barier.await()
             firstOperation = op1(service)
             testCompletionLatch.countDown()
         }
 
         lateinit var secondOperation: Either<ServiceError, Account>
         val t2 = Thread {
-            latch.await()
+            barier.await()
+            if (useOrder) latch.await()
             secondOperation = op2(service)
             testCompletionLatch.countDown()
         }
